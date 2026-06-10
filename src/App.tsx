@@ -13,7 +13,6 @@ import { TabBar } from './components/TabBar';
 import { PlaybackControls } from './components/PlaybackControls';
 import { StatusBar } from './components/StatusBar';
 import { CodePanel } from './components/CodePanel';
-import { CodeUnavailable } from './components/CodeUnavailable';
 import { PseudoCode } from './components/PseudoCode';
 import { Legend } from './components/canvas/Legend';
 import { OpToolbar } from './components/canvas/OpToolbar';
@@ -119,23 +118,19 @@ export default function App() {
 
         {/* left side: the interactive code panel + pseudo-code tracker */}
         <section className="flex flex-col gap-5">
-          {tab === 'stack' || tab === 'queue' ? (
-            <CodePanel
-              code={codes[tab]}
-              onChange={text => setCodes(c => ({ ...c, [tab]: text }))}
-              onRun={runCode}
-              onResetCode={() => {
-                setCodes(c => ({ ...c, [tab]: CODE_TEMPLATES[tab] }));
-                setCodeError(null);
-              }}
-              canRun={canOperate}
-              running={pb.playing}
-              activeLine={editorLine}
-              error={codeError}
-            />
-          ) : (
-            <CodeUnavailable />
-          )}
+          <CodePanel
+            code={codes[tab]}
+            onChange={text => setCodes(c => ({ ...c, [tab]: text }))}
+            onRun={runCode}
+            onResetCode={() => {
+              setCodes(c => ({ ...c, [tab]: CODE_TEMPLATES[tab] }));
+              setCodeError(null);
+            }}
+            canRun={canOperate}
+            running={pb.playing}
+            activeLine={editorLine}
+            error={codeError}
+          />
           <PseudoCode title={pseudo.title} lines={pseudo.lines} activeLine={pseudoLine} />
         </section>
       </main>

@@ -47,7 +47,8 @@ export interface Step {
 // Note: the queue's Bagrut method names are insert/remove (head to peek);
 // internally the op kinds stay 'enqueue'/'dequeue' and both spellings parse.
 export type Operation =
-  | { kind: 'newStructure'; target: 'stack' | 'queue'; typeParam?: string; sourceLine: number }
+  | { kind: 'newStructure'; target: 'stack' | 'queue' | 'list'; typeParam?: string; sourceLine: number }
+  | { kind: 'newSort'; bars: number[]; sourceLine: number }
   | { kind: 'push'; value: Value; sourceLine: number }
   | { kind: 'pop'; sourceLine: number }
   | { kind: 'top'; sourceLine: number }

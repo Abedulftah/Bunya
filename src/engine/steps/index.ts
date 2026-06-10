@@ -1,5 +1,6 @@
 import type { Frame, Operation, OpKind, Step, Value, VisualElement } from '../../types';
 import { kindOfValue, typeNameOf } from '../../types';
+import { makeEl } from '../ids';
 import { S } from '../../i18n/strings';
 import { pushSteps, popSteps, topSteps, STACK_PSEUDO } from './stack';
 import { enqueueSteps, dequeueSteps, headSteps, QUEUE_PSEUDO } from './queue';
@@ -28,6 +29,11 @@ function frameFor(op: Operation, els: VisualElement[]): Frame {
     case 'bubbleSort':
       return { kind: 'sort', bars: els };
     case 'newStructure':
+      if (op.target === 'stack') return { kind: 'stack', items: els };
+      if (op.target === 'queue') return { kind: 'queue', items: els };
+      return { kind: 'list', nodes: els, arrows: adjacentArrows(els.length) };
+    case 'newSort':
+      return { kind: 'sort', bars: els };
     case 'isEmpty':
       return op.target === 'stack' ? { kind: 'stack', items: els } : { kind: 'queue', items: els };
     default:
@@ -66,6 +72,15 @@ export function generateSteps(data: VisualElement[], op: Operation): Step[] {
       lineSource: 'pseudo',
       description: S.declCreated(op.typeParam),
     }];
+    case 'newSort': {
+      const bars = op.bars.map(v => makeEl(v));
+      return [{
+        frame: { kind: 'sort', bars },
+        line: 0,
+        lineSource: 'pseudo',
+        description: S.sort.newArray(op.bars.length),
+      }];
+    }
     case 'push': return pushSteps(data, op.value);
     case 'pop': return popSteps(data);
     case 'top': return topSteps(data);
@@ -105,7 +120,8 @@ export const PSEUDO_BY_OP: Record<OpKind, PseudoListing> = {
   enqueue: { title: S.ops.enqueue, lines: QUEUE_PSEUDO.insert },
   dequeue: { title: S.ops.dequeue, lines: QUEUE_PSEUDO.remove },
   head: { title: S.ops.head, lines: QUEUE_PSEUDO.head },
-  isEmpty: { title: S.ops.isEmpty, lines: ['boolean isEmpty() {', '  return size == 0;', '}'] },
+  isEmpty: { title: S.ops.isEmpty, lines: ['boolean isEmpty() {', '  return this.head == null;', '}'] },
+  newSort: { title: S.ops.bubbleSort, lines: SORT_PSEUDO },
   bubbleSort: { title: S.ops.bubbleSort, lines: SORT_PSEUDO },
   insertHead: { title: S.ops.insertHead, lines: LIST_PSEUDO.insertHead },
   insertTail: { title: S.ops.insertTail, lines: LIST_PSEUDO.insertTail },

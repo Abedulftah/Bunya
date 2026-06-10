@@ -5,24 +5,24 @@ import { S } from '../../i18n/strings';
 
 export const STACK_PSEUDO = {
   push: [
-    'void push(T v) {',
-    '  if (size == MAX) error;',
-    '  top = top + 1;',
-    '  arr[top] = v;',
+    'void insert(T x) {',
+    '  Node n = new Node(x);',
+    '  n.setNext(this.head);',
+    '  this.head = n;',
     '}',
   ],
   pop: [
-    'T pop() {',
-    '  if (size == 0) error;',
-    '  T v = arr[top];',
-    '  top = top - 1;',
+    'T remove() {',
+    '  if (isEmpty()) return null;',
+    '  T v = this.head.getValue();',
+    '  this.head = this.head.getNext();',
     '  return v;',
     '}',
   ],
   top: [
     'T top() {',
-    '  if (size == 0) error;',
-    '  return arr[top];',
+    '  if (isEmpty()) return null;',
+    '  return this.head.getValue();',
     '}',
   ],
 };

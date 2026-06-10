@@ -26,40 +26,75 @@ function normalizeDigits(s: string): string {
   });
 }
 
-/**
- * The code engine accepts the Bagrut class interfaces:
- * Stack — push/pop/top/isEmpty; Queue — insert/remove/head/isEmpty
- * (enqueue/dequeue kept as aliases since instruction.md uses them).
- * The other structures are animated via their toolbar buttons.
- */
-interface MethodSpec {
-  kind: 'push' | 'pop' | 'top' | 'enqueue' | 'dequeue' | 'head' | 'isEmpty';
-  args: number;
+// ─── Method table ────────────────────────────────────────────────────────────
+// Both Stack and Queue use insert/remove in the Ministry of Education spec, so
+// the same method name maps to different op kinds depending on the active tab.
+// Using an array (not a Record) lets us have duplicate method names with
+// different tab scopes.
+
+type ArgSpec = 'none' | 'value' | 'index' | 'index+value';
+
+interface MethodEntry {
+  name: string;
+  kind: Operation['kind'];
+  argSpec: ArgSpec;
   tabs: TabKind[];
 }
 
-const METHODS: Record<string, MethodSpec> = {
-  push: { kind: 'push', args: 1, tabs: ['stack'] },
-  pop: { kind: 'pop', args: 0, tabs: ['stack'] },
-  top: { kind: 'top', args: 0, tabs: ['stack'] },
-  insert: { kind: 'enqueue', args: 1, tabs: ['queue'] },
-  remove: { kind: 'dequeue', args: 0, tabs: ['queue'] },
-  head: { kind: 'head', args: 0, tabs: ['queue'] },
-  // instruction.md spells these enqueue/dequeue — accepted as aliases
-  enqueue: { kind: 'enqueue', args: 1, tabs: ['queue'] },
-  dequeue: { kind: 'dequeue', args: 0, tabs: ['queue'] },
-  isempty: { kind: 'isEmpty', args: 0, tabs: ['stack', 'queue'] },
-};
+const METHODS: MethodEntry[] = [
+  // ── Stack (Ministry spec: insert/remove/top/isEmpty; push/pop as aliases) ──
+  { name: 'insert', kind: 'push',    argSpec: 'value', tabs: ['stack'] },
+  { name: 'remove', kind: 'pop',     argSpec: 'none',  tabs: ['stack'] },
+  { name: 'top',    kind: 'top',     argSpec: 'none',  tabs: ['stack'] },
+  { name: 'push',   kind: 'push',    argSpec: 'value', tabs: ['stack'] },   // alias
+  { name: 'pop',    kind: 'pop',     argSpec: 'none',  tabs: ['stack'] },   // alias
+  // ── Queue (insert/remove/head/isEmpty; enqueue/dequeue as aliases) ─────────
+  { name: 'insert',  kind: 'enqueue', argSpec: 'value', tabs: ['queue'] },
+  { name: 'remove',  kind: 'dequeue', argSpec: 'none',  tabs: ['queue'] },
+  { name: 'head',    kind: 'head',    argSpec: 'none',  tabs: ['queue'] },
+  { name: 'enqueue', kind: 'enqueue', argSpec: 'value', tabs: ['queue'] }, // alias
+  { name: 'dequeue', kind: 'dequeue', argSpec: 'none',  tabs: ['queue'] }, // alias
+  // ── Shared ─────────────────────────────────────────────────────────────────
+  { name: 'isempty', kind: 'isEmpty', argSpec: 'none', tabs: ['stack', 'queue'] },
+  // ── Linked List ────────────────────────────────────────────────────────────
+  { name: 'inserthead', kind: 'insertHead', argSpec: 'value',       tabs: ['list'] },
+  { name: 'inserttail', kind: 'insertTail', argSpec: 'value',       tabs: ['list'] },
+  { name: 'insertat',   kind: 'insertAt',   argSpec: 'index+value', tabs: ['list'] },
+  { name: 'deletehead', kind: 'deleteHead', argSpec: 'none',        tabs: ['list'] },
+  { name: 'deletetail', kind: 'deleteTail', argSpec: 'none',        tabs: ['list'] },
+  { name: 'deleteat',   kind: 'deleteAt',   argSpec: 'index',       tabs: ['list'] },
+];
 
-// e.g. `Stack<int> s = new Stack<int>();` — captures the type parameter T and the variable name
-const DECLARATION_RE = /^\w+(?:\s*<\s*(\w+)\s*>)?\s+(\w+)\s*=\s*new\s+\w+(?:\s*<\s*\w+\s*>)?\s*\(\s*\)\s*;?$/;
+function findMethod(name: string, tab: TabKind): MethodEntry | undefined {
+  return METHODS.find(m => m.name === name.toLowerCase() && m.tabs.includes(tab));
+}
+
+function methodExistsForAnyTab(name: string): boolean {
+  return METHODS.some(m => m.name === name.toLowerCase());
+}
+
+// ─── Regex patterns ──────────────────────────────────────────────────────────
+
+// `Stack<int> s = new Stack<int>();`
+const DECLARATION_RE =
+  /^\w+(?:\s*<\s*(\w+)\s*>)?\s+(\w+)\s*=\s*new\s+\w+(?:\s*<\s*\w+\s*>)?\s*\(\s*\)\s*;?$/;
+
+// `obj.method(args)`
 const METHOD_RE = /^(\w+)\.(\w+)\s*\(([^()]*)\)\s*;?$/;
+
+// `int[] arr = {5, 2, 8, 1};` (sort tab)
+const SORT_ARRAY_RE =
+  /^(?:int|Integer)\s*\[\s*\]\s+(\w+)\s*=\s*\{([^}]+)\}\s*;?$/;
+
+// `bubbleSort(arr);` or just `bubbleSort();`
+const SORT_CALL_RE = /^(?:\w+\.)?(?:bubbleSort|sort)\s*\([^)]*\)\s*;?$/;
+
+// ─── Value parsing ────────────────────────────────────────────────────────────
 
 type ParsedValue =
   | { ok: true; value: Value; valueKind: 'int' | 'double' | 'text' }
   | { ok: false; message: string };
 
-/** Values are generic (any type T): integers, decimals, or quoted text. */
 function parseValue(raw: string): ParsedValue {
   const s = raw.trim();
   const quoted = s.match(/^"([^"]*)"$|^'([^']*)'$/);
@@ -77,7 +112,12 @@ function parseValue(raw: string): ParsedValue {
   return { ok: false, message: S.errors.badValue };
 }
 
-/** Does a parsed value match the declared generic type parameter? */
+function parseIndex(raw: string): { ok: true; index: number } | { ok: false; message: string } {
+  const s = raw.trim();
+  if (/^\d+$/.test(s)) return { ok: true, index: parseInt(s, 10) };
+  return { ok: false, message: S.errors.badIndex };
+}
+
 function matchesType(t: string, valueKind: 'int' | 'double' | 'text', value: Value): boolean {
   switch (t.toLowerCase()) {
     case 'int':
@@ -93,7 +133,7 @@ function matchesType(t: string, valueKind: 'int' | 'double' | 'text', value: Val
     case 'character':
       return valueKind === 'text' && String(value).length === 1;
     default:
-      return true; // T or any unknown type parameter accepts everything
+      return true;
   }
 }
 
@@ -101,34 +141,68 @@ function err(line: number, message: string): ParseResult {
   return { ok: false, error: { line, message } };
 }
 
+// ─── Main parser ──────────────────────────────────────────────────────────────
+
 export function parseProgram(text: string, tab: TabKind): ParseResult {
   const ops: Operation[] = [];
-  const declaredType = new Map<string, string>(); // variable name → generic type parameter
+  const declaredType = new Map<string, string>();
   const lines = text.split('\n');
 
   for (let li = 0; li < lines.length; li++) {
     const code = normalizeDigits(lines[li]).replace(/\/\/.*$/, '').trim();
     if (!code) continue;
 
+    // ── Sort tab: array declaration ───────────────────────────────────────────
+    if (tab === 'sort') {
+      const arr = code.match(SORT_ARRAY_RE);
+      if (arr) {
+        const rawNums = arr[2].split(',').map(s => s.trim()).filter(Boolean);
+        const nums: number[] = [];
+        for (const raw of rawNums) {
+          if (!/^-?\d+(\.\d+)?$/.test(raw)) return err(li, S.errors.badValue);
+          nums.push(Number(raw));
+        }
+        if (nums.length < 2) return err(li, 'تحتاج المصفوفة إلى عنصرين على الأقل');
+        if (nums.length > 12) return err(li, 'المصفوفة كبيرة جدًا — الحد الأقصى 12 عنصرًا');
+        ops.push({ kind: 'newSort', bars: nums, sourceLine: li });
+        continue;
+      }
+      if (SORT_CALL_RE.test(code)) {
+        ops.push({ kind: 'bubbleSort', sourceLine: li });
+        continue;
+      }
+      return err(li, S.errors.syntax);
+    }
+
+    // ── Declaration: Stack<T> s = new Stack<T>(); ─────────────────────────────
     const decl = code.match(DECLARATION_RE);
     if (decl) {
       if (decl[1]) declaredType.set(decl[2], decl[1]);
-      // `new Stack<T>()` creates a fresh empty structure, replacing the canvas contents
-      if (tab === 'stack' || tab === 'queue') {
-        ops.push({ kind: 'newStructure', target: tab, typeParam: decl[1], sourceLine: li });
+      if (tab === 'stack' || tab === 'queue' || tab === 'list') {
+        ops.push({
+          kind: 'newStructure',
+          target: tab as 'stack' | 'queue' | 'list',
+          typeParam: decl[1],
+          sourceLine: li,
+        });
       }
       continue;
     }
 
+    // ── Method call: obj.method(args) ─────────────────────────────────────────
     const m = code.match(METHOD_RE);
     if (m) {
       const [, varName, name, argStr] = m;
-      const spec = METHODS[name.toLowerCase()];
-      if (!spec) return err(li, S.errors.unknownOp(name));
-      if (!spec.tabs.includes(tab)) return err(li, S.errors.wrongTab(name));
-      const trimmedArgs = argStr.trim();
-      if (spec.args === 0) {
-        if (trimmedArgs) return err(li, S.errors.badArgs(name, 0));
+      const spec = findMethod(name, tab);
+      if (!spec) {
+        if (methodExistsForAnyTab(name)) return err(li, S.errors.wrongTab(name));
+        return err(li, S.errors.unknownOp(name));
+      }
+
+      const trimmed = argStr.trim();
+
+      if (spec.argSpec === 'none') {
+        if (trimmed) return err(li, S.errors.badArgs(name, 0));
         if (spec.kind === 'isEmpty') {
           ops.push({ kind: 'isEmpty', target: tab as 'stack' | 'queue', sourceLine: li });
         } else {
@@ -136,15 +210,42 @@ export function parseProgram(text: string, tab: TabKind): ParseResult {
         }
         continue;
       }
-      if (!trimmedArgs) return err(li, S.errors.badArgs(name, 1));
-      const parsed = parseValue(trimmedArgs);
-      if (!parsed.ok) return err(li, parsed.message);
-      const t = declaredType.get(varName);
-      if (t && !matchesType(t, parsed.valueKind, parsed.value)) {
-        return err(li, S.errors.typeMismatch(parsed.value, t, varName));
+
+      if (spec.argSpec === 'value') {
+        if (!trimmed) return err(li, S.errors.badArgs(name, 1));
+        const parsed = parseValue(trimmed);
+        if (!parsed.ok) return err(li, parsed.message);
+        const t = declaredType.get(varName);
+        if (t && !matchesType(t, parsed.valueKind, parsed.value)) {
+          return err(li, S.errors.typeMismatch(parsed.value, t, varName));
+        }
+        ops.push({ kind: spec.kind, value: parsed.value, sourceLine: li } as Operation);
+        continue;
       }
-      ops.push({ kind: spec.kind, value: parsed.value, sourceLine: li } as Operation);
-      continue;
+
+      if (spec.argSpec === 'index') {
+        if (!trimmed) return err(li, S.errors.badArgs(name, 1));
+        const pi = parseIndex(trimmed);
+        if (!pi.ok) return err(li, pi.message);
+        ops.push({ kind: spec.kind, index: pi.index, sourceLine: li } as Operation);
+        continue;
+      }
+
+      if (spec.argSpec === 'index+value') {
+        // insertAt(index, value)
+        const parts = trimmed.split(',');
+        if (parts.length !== 2) return err(li, S.errors.badArgs(name, 2));
+        const pi = parseIndex(parts[0]);
+        if (!pi.ok) return err(li, pi.message);
+        const pv = parseValue(parts[1]);
+        if (!pv.ok) return err(li, pv.message);
+        const t = declaredType.get(varName);
+        if (t && !matchesType(t, pv.valueKind, pv.value)) {
+          return err(li, S.errors.typeMismatch(pv.value, t, varName));
+        }
+        ops.push({ kind: spec.kind, index: pi.index, value: pv.value, sourceLine: li } as Operation);
+        continue;
+      }
     }
 
     return err(li, S.errors.syntax);
