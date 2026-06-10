@@ -1,6 +1,6 @@
-import type { Operation, Step, TabKind, VisualElement } from '../types';
+import type { Operation, Step, TabKind, Value, VisualElement } from '../types';
 import { frameElements } from '../types';
-import { MAX_VALUE } from '../constants';
+import { MAX_VALUE_LEN } from '../constants';
 import { S } from '../i18n/strings';
 import { generateSteps } from './steps';
 
@@ -26,10 +26,13 @@ function normalizeDigits(s: string): string {
   });
 }
 
+/**
+ * Only the operations named in instruction.md are accepted from code:
+ * push/pop (stack) and enqueue/dequeue (queue). The other structures
+ * are animated via their toolbar buttons.
+ */
 interface MethodSpec {
-  kind: 'push' | 'pop' | 'enqueue' | 'dequeue'
-    | 'insertHead' | 'insertTail' | 'insertAt'
-    | 'deleteHead' | 'deleteTail' | 'deleteAt';
+  kind: 'push' | 'pop' | 'enqueue' | 'dequeue';
   args: number;
   tab: TabKind;
 }
@@ -39,18 +42,53 @@ const METHODS: Record<string, MethodSpec> = {
   pop: { kind: 'pop', args: 0, tab: 'stack' },
   enqueue: { kind: 'enqueue', args: 1, tab: 'queue' },
   dequeue: { kind: 'dequeue', args: 0, tab: 'queue' },
-  inserthead: { kind: 'insertHead', args: 1, tab: 'list' },
-  inserttail: { kind: 'insertTail', args: 1, tab: 'list' },
-  insertat: { kind: 'insertAt', args: 2, tab: 'list' },
-  deletehead: { kind: 'deleteHead', args: 0, tab: 'list' },
-  deletetail: { kind: 'deleteTail', args: 0, tab: 'list' },
-  deleteat: { kind: 'deleteAt', args: 1, tab: 'list' },
 };
 
-const DECLARATION_RE = /^\w[\w<>[\]\s]*\s+\w+\s*=\s*new\s+[\w<>\s]+\(\s*\)\s*;?$/;
-const ARRAY_RE = /^int\s*\[\s*\]\s*\w+\s*=\s*\{([^}]*)\}\s*;?$/;
-const SORT_CALL_RE = /^bubblesort\s*\(\s*\w*\s*\)\s*;?$/i;
+// e.g. `Stack<int> s = new Stack<int>();` — captures the type parameter T and the variable name
+const DECLARATION_RE = /^\w+(?:\s*<\s*(\w+)\s*>)?\s+(\w+)\s*=\s*new\s+\w+(?:\s*<\s*\w+\s*>)?\s*\(\s*\)\s*;?$/;
 const METHOD_RE = /^(\w+)\.(\w+)\s*\(([^()]*)\)\s*;?$/;
+
+type ParsedValue =
+  | { ok: true; value: Value; valueKind: 'int' | 'double' | 'text' }
+  | { ok: false; message: string };
+
+/** Values are generic (any type T): integers, decimals, or quoted text. */
+function parseValue(raw: string): ParsedValue {
+  const s = raw.trim();
+  const quoted = s.match(/^"([^"]*)"$|^'([^']*)'$/);
+  if (quoted) {
+    const text = quoted[1] ?? quoted[2];
+    if (text.length === 0) return { ok: false, message: S.errors.badValue };
+    if (text.length > MAX_VALUE_LEN) return { ok: false, message: S.errors.tooLong };
+    return { ok: true, value: text, valueKind: 'text' };
+  }
+  if (/^-?\d+$/.test(s) || /^-?\d+\.\d+$/.test(s)) {
+    if (s.length > MAX_VALUE_LEN) return { ok: false, message: S.errors.tooLong };
+    return { ok: true, value: Number(s), valueKind: s.includes('.') ? 'double' : 'int' };
+  }
+  if (/^[\p{L}_][\p{L}\p{N}_]*$/u.test(s)) return { ok: false, message: S.errors.needQuotes };
+  return { ok: false, message: S.errors.badValue };
+}
+
+/** Does a parsed value match the declared generic type parameter? */
+function matchesType(t: string, valueKind: 'int' | 'double' | 'text', value: Value): boolean {
+  switch (t.toLowerCase()) {
+    case 'int':
+    case 'integer':
+    case 'long':
+      return valueKind === 'int';
+    case 'double':
+    case 'float':
+      return valueKind === 'int' || valueKind === 'double';
+    case 'string':
+      return valueKind === 'text';
+    case 'char':
+    case 'character':
+      return valueKind === 'text' && String(value).length === 1;
+    default:
+      return true; // T or any unknown type parameter accepts everything
+  }
+}
 
 function err(line: number, message: string): ParseResult {
   return { ok: false, error: { line, message } };
@@ -58,54 +96,39 @@ function err(line: number, message: string): ParseResult {
 
 export function parseProgram(text: string, tab: TabKind): ParseResult {
   const ops: Operation[] = [];
+  const declaredType = new Map<string, string>(); // variable name → generic type parameter
   const lines = text.split('\n');
 
   for (let li = 0; li < lines.length; li++) {
     const code = normalizeDigits(lines[li]).replace(/\/\/.*$/, '').trim();
     if (!code) continue;
-    if (DECLARATION_RE.test(code)) continue;
 
-    const arr = code.match(ARRAY_RE);
-    if (arr) {
-      if (tab !== 'sort') return err(li, S.errors.wrongTab('int[]'));
-      const parts = arr[1].split(',').map(p => p.trim()).filter(Boolean);
-      if (parts.length < 2 || parts.length > 10) return err(li, S.errors.arrayCount);
-      const values = parts.map(p => (/^\d+$/.test(p) ? parseInt(p, 10) : NaN));
-      if (values.some(v => Number.isNaN(v) || v > MAX_VALUE)) return err(li, S.errors.badNumber);
-      ops.push({ kind: 'setArray', values, sourceLine: li });
-      continue;
-    }
-
-    if (SORT_CALL_RE.test(code)) {
-      if (tab !== 'sort') return err(li, S.errors.wrongTab('bubbleSort'));
-      ops.push({ kind: 'bubbleSort', sourceLine: li });
+    const decl = code.match(DECLARATION_RE);
+    if (decl) {
+      if (decl[1]) declaredType.set(decl[2], decl[1]);
       continue;
     }
 
     const m = code.match(METHOD_RE);
     if (m) {
-      const name = m[2];
+      const [, varName, name, argStr] = m;
       const spec = METHODS[name.toLowerCase()];
       if (!spec) return err(li, S.errors.unknownOp(name));
       if (spec.tab !== tab) return err(li, S.errors.wrongTab(name));
-      const argStr = m[3].trim();
-      const args = argStr ? argStr.split(',').map(a => a.trim()) : [];
-      if (args.length !== spec.args) return err(li, S.errors.badArgs(name, spec.args));
-      const nums = args.map(a => (/^\d+$/.test(a) ? parseInt(a, 10) : NaN));
-      if (nums.some(n => Number.isNaN(n) || n > MAX_VALUE)) return err(li, S.errors.badNumber);
-
-      switch (spec.kind) {
-        case 'push': ops.push({ kind: 'push', value: nums[0], sourceLine: li }); break;
-        case 'pop': ops.push({ kind: 'pop', sourceLine: li }); break;
-        case 'enqueue': ops.push({ kind: 'enqueue', value: nums[0], sourceLine: li }); break;
-        case 'dequeue': ops.push({ kind: 'dequeue', sourceLine: li }); break;
-        case 'insertHead': ops.push({ kind: 'insertHead', value: nums[0], sourceLine: li }); break;
-        case 'insertTail': ops.push({ kind: 'insertTail', value: nums[0], sourceLine: li }); break;
-        case 'insertAt': ops.push({ kind: 'insertAt', index: nums[0], value: nums[1], sourceLine: li }); break;
-        case 'deleteHead': ops.push({ kind: 'deleteHead', sourceLine: li }); break;
-        case 'deleteTail': ops.push({ kind: 'deleteTail', sourceLine: li }); break;
-        case 'deleteAt': ops.push({ kind: 'deleteAt', index: nums[0], sourceLine: li }); break;
+      const trimmedArgs = argStr.trim();
+      if (spec.args === 0) {
+        if (trimmedArgs) return err(li, S.errors.badArgs(name, 0));
+        ops.push({ kind: spec.kind, sourceLine: li } as Operation);
+        continue;
       }
+      if (!trimmedArgs) return err(li, S.errors.badArgs(name, 1));
+      const parsed = parseValue(trimmedArgs);
+      if (!parsed.ok) return err(li, parsed.message);
+      const t = declaredType.get(varName);
+      if (t && !matchesType(t, parsed.valueKind, parsed.value)) {
+        return err(li, S.errors.typeMismatch(parsed.value, t, varName));
+      }
+      ops.push({ kind: spec.kind, value: parsed.value, sourceLine: li } as Operation);
       continue;
     }
 

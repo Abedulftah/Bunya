@@ -20,7 +20,7 @@ export function SortCanvas({ frame, transMs }: { frame: FrameSort; transMs: numb
                 width: BAR_W,
                 left: 16 + i * SP,
                 bottom: 32,
-                height: 18 + el.value * 2.1,
+                height: 18 + Number(el.value) * 2.1,
                 transitionDuration: `${transMs}ms`,
               }}
             />

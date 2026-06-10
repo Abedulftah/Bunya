@@ -1,20 +1,20 @@
-import type { FrameQueue, Step, VisualElement } from '../../types';
+import type { FrameQueue, Step, Value, VisualElement } from '../../types';
 import { MAX_QUEUE } from '../../constants';
 import { makeEl } from '../ids';
 import { S } from '../../i18n/strings';
 
 export const QUEUE_PSEUDO = {
   enqueue: [
-    'void enqueue(int v) {',
+    'void enqueue(T v) {',
     '  if (size == MAX) error;',
     '  arr[rear] = v;',
     '  rear = rear + 1;',
     '}',
   ],
   dequeue: [
-    'int dequeue() {',
+    'T dequeue() {',
     '  if (size == 0) error;',
-    '  int v = arr[front];',
+    '  T v = arr[front];',
     '  front = front + 1;',
     '  return v;',
     '}',
@@ -30,7 +30,7 @@ const step = (items: VisualElement[], line: number, description: string, error =
   ({ frame: frame(items), line, lineSource: 'pseudo', description, error });
 
 /** items[0] is the front of the queue (drawn at the right edge). */
-export function enqueueSteps(items: VisualElement[], value: number): Step[] {
+export function enqueueSteps(items: VisualElement[], value: Value): Step[] {
   const base = reset(items);
   const steps: Step[] = [step(base, 1, S.queue.checkFull)];
   if (items.length >= MAX_QUEUE) {

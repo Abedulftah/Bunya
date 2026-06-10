@@ -28,7 +28,7 @@ export function StackCanvas({ frame, transMs }: { frame: FrameStack; transMs: nu
           return (
             <div
               key={el.id}
-              className={`absolute flex h-11 w-24 items-center justify-center rounded-lg border-2 text-lg font-bold shadow-md transition-all ${STATE_STYLES[el.state]} ${faded ? 'opacity-0' : 'opacity-100'}`}
+              className={`absolute flex h-11 w-24 items-center justify-center rounded-lg border-2 font-bold shadow-md transition-all ${String(el.value).length <= 3 ? 'text-lg' : 'text-sm'} ${STATE_STYLES[el.state]} ${faded ? 'opacity-0' : 'opacity-100'}`}
               style={{
                 bottom: 10 + i * SLOT,
                 left: (BOX_W - 96) / 2,

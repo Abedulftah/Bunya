@@ -9,9 +9,12 @@ export type ElemState =
   | 'entering'
   | 'exiting';
 
+/** Element values are generic — any type T (numbers, strings, chars). */
+export type Value = number | string;
+
 export interface VisualElement {
   id: number;
-  value: number;
+  value: Value;
   state: ElemState;
 }
 
@@ -42,15 +45,14 @@ export interface Step {
 }
 
 export type Operation =
-  | { kind: 'push'; value: number; sourceLine: number }
+  | { kind: 'push'; value: Value; sourceLine: number }
   | { kind: 'pop'; sourceLine: number }
-  | { kind: 'enqueue'; value: number; sourceLine: number }
+  | { kind: 'enqueue'; value: Value; sourceLine: number }
   | { kind: 'dequeue'; sourceLine: number }
-  | { kind: 'setArray'; values: number[]; sourceLine: number }
   | { kind: 'bubbleSort'; sourceLine: number }
-  | { kind: 'insertHead'; value: number; sourceLine: number }
-  | { kind: 'insertTail'; value: number; sourceLine: number }
-  | { kind: 'insertAt'; index: number; value: number; sourceLine: number }
+  | { kind: 'insertHead'; value: Value; sourceLine: number }
+  | { kind: 'insertTail'; value: Value; sourceLine: number }
+  | { kind: 'insertAt'; index: number; value: Value; sourceLine: number }
   | { kind: 'deleteHead'; sourceLine: number }
   | { kind: 'deleteTail'; sourceLine: number }
   | { kind: 'deleteAt'; index: number; sourceLine: number };

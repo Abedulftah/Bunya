@@ -1,25 +1,25 @@
-import type { FrameList, ListArrow, Step, VisualElement } from '../../types';
+import type { FrameList, ListArrow, Step, Value, VisualElement } from '../../types';
 import { MAX_LIST } from '../../constants';
 import { makeEl } from '../ids';
 import { S } from '../../i18n/strings';
 
 export const LIST_PSEUDO = {
   insertHead: [
-    'void insertHead(int v) {',
+    'void insertHead(T v) {',
     '  Node n = new Node(v);',
     '  n.next = head;',
     '  head = n;',
     '}',
   ],
   insertTail: [
-    'void insertTail(int v) {',
+    'void insertTail(T v) {',
     '  Node n = new Node(v);',
     '  tail.next = n;',
     '  tail = n;',
     '}',
   ],
   insertAt: [
-    'void insertAt(int i, int v) {',
+    'void insertAt(int i, T v) {',
     '  Node cur = head;',
     '  repeat (i - 1) times:',
     '    cur = cur.next;',
@@ -79,7 +79,7 @@ function step(
   return { frame, line, lineSource: 'pseudo', description, error: opts.error };
 }
 
-export function insertHeadSteps(nodes: VisualElement[], value: number): Step[] {
+export function insertHeadSteps(nodes: VisualElement[], value: Value): Step[] {
   const base = reset(nodes);
   const L = base.length;
   if (L >= MAX_LIST) {
@@ -96,7 +96,7 @@ export function insertHeadSteps(nodes: VisualElement[], value: number): Step[] {
   ];
 }
 
-export function insertTailSteps(nodes: VisualElement[], value: number): Step[] {
+export function insertTailSteps(nodes: VisualElement[], value: Value): Step[] {
   const base = reset(nodes);
   const L = base.length;
   if (L === 0) return insertHeadSteps(nodes, value);
@@ -113,7 +113,7 @@ export function insertTailSteps(nodes: VisualElement[], value: number): Step[] {
   ];
 }
 
-export function insertAtSteps(nodes: VisualElement[], index: number, value: number): Step[] {
+export function insertAtSteps(nodes: VisualElement[], index: number, value: Value): Step[] {
   const base = reset(nodes);
   const L = base.length;
   if (index < 0 || index > L) {

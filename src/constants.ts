@@ -10,7 +10,8 @@ export const MAX_QUEUE = 7;
 export const MAX_LIST = 6;
 export const SORT_MIN_SIZE = 5;
 export const SORT_MAX_SIZE = 10;
-export const MAX_VALUE = 99;
+/** Longest value (in characters) that still fits inside the element boxes. */
+export const MAX_VALUE_LEN = 6;
 
 /** Element box colors per visual state (full class names so Tailwind sees them). */
 export const STATE_STYLES: Record<ElemState, string> = {

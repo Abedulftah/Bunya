@@ -1,5 +1,4 @@
 import type { Operation, OpKind, Step, VisualElement } from '../../types';
-import { makeEl } from '../ids';
 import { S } from '../../i18n/strings';
 import { pushSteps, popSteps, STACK_PSEUDO } from './stack';
 import { enqueueSteps, dequeueSteps, QUEUE_PSEUDO } from './queue';
@@ -22,12 +21,6 @@ export function generateSteps(data: VisualElement[], op: Operation): Step[] {
     case 'enqueue': return enqueueSteps(data, op.value);
     case 'dequeue': return dequeueSteps(data);
     case 'bubbleSort': return bubbleSortSteps(data);
-    case 'setArray': return [{
-      frame: { kind: 'sort', bars: op.values.map(makeEl) },
-      line: 0,
-      lineSource: 'pseudo',
-      description: S.sort.created,
-    }];
     case 'insertHead': return insertHeadSteps(data, op.value);
     case 'insertTail': return insertTailSteps(data, op.value);
     case 'insertAt': return insertAtSteps(data, op.index, op.value);
@@ -48,7 +41,6 @@ export const PSEUDO_BY_OP: Record<OpKind, PseudoListing> = {
   enqueue: { title: S.ops.enqueue, lines: QUEUE_PSEUDO.enqueue },
   dequeue: { title: S.ops.dequeue, lines: QUEUE_PSEUDO.dequeue },
   bubbleSort: { title: S.ops.bubbleSort, lines: SORT_PSEUDO },
-  setArray: { title: S.ops.setArray, lines: ['int[] arr = { ... };'] },
   insertHead: { title: S.ops.insertHead, lines: LIST_PSEUDO.insertHead },
   insertTail: { title: S.ops.insertTail, lines: LIST_PSEUDO.insertTail },
   insertAt: { title: S.ops.insertAt, lines: LIST_PSEUDO.insertAt },

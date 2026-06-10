@@ -1,28 +1,25 @@
 import type { OpKind, TabKind } from '../types';
 
-/** Initial editor program per tab (Java/C#-style, parsed by the interpreter). */
+/**
+ * Initial editor program per tab. Only the operations named in
+ * instruction.md are executable from code (push/pop, enqueue/dequeue);
+ * the sort and linked-list tabs are driven from the toolbar instead.
+ */
 export const CODE_TEMPLATES: Record<TabKind, string> = {
-  stack: `// جرّب بنفسك: عدّل الكود ثم اضغط "تشغيل الكود"
-Stack<int> mystack = new Stack<int>();
-mystack.push(5);
-mystack.push(12);
-mystack.push(8);
+  stack: `// المكدس عام النوع — مثل القالب T: جرّب أعدادًا أو نصوصًا
+Stack<string> mystack = new Stack<string>();
+mystack.push("أحمد");
+mystack.push("ليلى");
+mystack.push("سارة");
 mystack.pop();`,
-  queue: `// الطابور: أول من يدخل أول من يخرج (FIFO)
-Queue<int> myqueue = new Queue<int>();
-myqueue.enqueue(3);
+  queue: `// الطابور يقبل أي نوع T — أول من يدخل أول من يخرج (FIFO)
+Queue<T> myqueue = new Queue<T>();
+myqueue.enqueue("سامي");
 myqueue.enqueue(7);
-myqueue.enqueue(11);
+myqueue.enqueue("نور");
 myqueue.dequeue();`,
-  sort: `// عرّف المصفوفة ثم نفّذ فرز الفقاعات
-int[] arr = {29, 10, 45, 18, 33};
-bubbleSort(arr);`,
-  list: `// القائمة الموصولة: insertAt(الموقع, القيمة)
-LinkedList<int> mylist = new LinkedList<int>();
-mylist.insertHead(7);
-mylist.insertTail(20);
-mylist.insertAt(1, 13);
-mylist.deleteAt(1);`,
+  sort: '',
+  list: '',
 };
 
 /** Which operation's pseudo-code to show when a tab is first opened. */

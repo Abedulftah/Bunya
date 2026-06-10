@@ -40,3 +40,137 @@ Implementation Guidelines:
 - Provide the complete solution as clean, production-ready, modular React TypeScript (`.tsx`) code. 
 - Use standard Tailwind utility classes for animations (e.g., `transition-all duration-500`).
 - Ensure all states (such as arrays, linked list object trees, and simulation playback states) are properly typed using TypeScript interfaces.
+- All the methods must be as the Ministry of Education in Israel.
+
+- Linked List:
+    public class Node<T> {
+        private T value;
+        private Node<T> next;
+
+        public Node(T value) {
+            this.value = value;
+            this.next = null;
+        }
+
+        public Node(T value, Node<T> next) {
+            this.value = value;
+            this.next = next;
+        }
+
+        public T getValue() {
+            return this.value;
+        }
+
+        public Node<T> getNext() {
+            return this.next;
+        }
+
+        public void setValue(T value) {
+            this.value = value;
+        }
+
+        public void setNext(Node<T> next) {
+            this.next = next;
+        }
+
+        public boolean hasNext() {
+            return this.next != null;
+        }
+
+        @Override
+        public String toString() {
+            return this.value + " --> " + (this.next != null ? this.next.toString() : "null");
+        }
+    }
+
+- Stack:
+    public class Stack<T> {
+        private Node<T> head;
+
+        public Stack() {
+            this.head = null;
+        }
+
+        public void insert(T x) {
+            Node<T> newNode = new Node<T>(x);
+            newNode.setNext(this.head);
+            this.head = newNode;
+        }
+
+        public T remove() {
+            if (this.isEmpty()) {
+                return null;
+            }
+            T value = this.head.getValue(); // שומרים את הערך של הראש
+            this.head = this.head.getNext(); // מזיזים את הראש לחוליה הבאה
+            return value;
+        }
+
+        public T top() {
+            if (this.isEmpty()) {
+                return null;
+            }
+            return this.head.getValue();
+        }
+
+        public boolean isEmpty() {
+            return this.head == null;
+        }
+
+        @Override
+        public String toString() {
+            if (this.isEmpty()) return "[]";
+            return this.head.toString();
+        }
+    }
+
+- Qeueu:
+    public class Queue<T> {
+        private Node<T> head;
+        private Node<T> tail;
+
+        public Queue() {
+            this.head = null;
+            this.tail = null;
+        }
+
+        public void insert(T x) {
+            Node<T> newNode = new Node<T>(x);
+            if (this.isEmpty()) {
+                this.head = newNode;
+            } else {
+                this.tail.setNext(newNode);
+            }
+            this.tail = newNode;
+        }
+
+        public T remove() {
+            if (this.isEmpty()) {
+                return null;
+            }
+            T value = this.head.getValue();
+            this.head = this.head.getNext();
+            
+            if (this.head == null) {
+                this.tail = null;
+            }
+            return value;
+        }
+
+        public T head() {
+            if (this.isEmpty()) {
+                return null;
+            }
+            return this.head.getValue();
+        }
+
+        public boolean isEmpty() {
+            return this.head == null;
+        }
+
+        @Override
+        public String toString() {
+            if (this.isEmpty()) return "[]";
+            return this.head.toString();
+        }
+    }

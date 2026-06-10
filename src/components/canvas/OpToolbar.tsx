@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Play, Shuffle } from 'lucide-react';
-import type { Operation, TabKind } from '../../types';
-import { SORT_MAX_SIZE, SORT_MIN_SIZE } from '../../constants';
+import type { Operation, TabKind, Value } from '../../types';
+import { MAX_VALUE_LEN, SORT_MAX_SIZE, SORT_MIN_SIZE } from '../../constants';
 import { S } from '../../i18n/strings';
 
 type Variant = 'add' | 'remove' | 'run';
@@ -71,7 +71,35 @@ function NumInput({
   );
 }
 
+/** Generic value input — the structures accept any type T (numbers or text). */
+function ValueInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="flex items-center gap-1.5 text-xs text-slate-300">
+      {label}
+      <input
+        type="text"
+        dir="auto"
+        maxLength={MAX_VALUE_LEN}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-20 rounded-lg border border-slate-600 bg-slate-900 px-2 py-1.5 text-center font-mono text-sm text-white outline-none focus:border-emerald-400"
+      />
+    </label>
+  );
+}
+
 const isInt = (s: string, max = 99) => /^\d+$/.test(s.trim()) && parseInt(s, 10) <= max;
+
+/** Numeric-looking input becomes a number, anything else stays text — like a generic T. */
+const toValue = (s: string): Value => (/^-?\d+$/.test(s.trim()) ? parseInt(s.trim(), 10) : s.trim());
 
 export function OpToolbar({
   tab,
@@ -88,16 +116,16 @@ export function OpToolbar({
   const [idx, setIdx] = useState('1');
   const [size, setSize] = useState(7);
 
-  const v = () => parseInt(val, 10);
+  const v = () => toValue(val);
   const i = () => parseInt(idx, 10);
-  const validVal = isInt(val);
+  const validVal = val.trim().length >= 1 && val.trim().length <= MAX_VALUE_LEN;
   const validIdx = isInt(idx, 9);
 
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 p-3">
       {tab === 'stack' && (
         <>
-          <NumInput label={S.toolbar.value} value={val} onChange={setVal} />
+          <ValueInput label={S.toolbar.value} value={val} onChange={setVal} />
           <OpButton en="push" ar="إدخال" variant="add" disabled={!enabled || !validVal}
             onClick={() => onOp({ kind: 'push', value: v(), sourceLine: 0 })} />
           <OpButton en="pop" ar="إخراج" variant="remove" disabled={!enabled}
@@ -107,7 +135,7 @@ export function OpToolbar({
 
       {tab === 'queue' && (
         <>
-          <NumInput label={S.toolbar.value} value={val} onChange={setVal} />
+          <ValueInput label={S.toolbar.value} value={val} onChange={setVal} />
           <OpButton en="enqueue" ar="إضافة" variant="add" disabled={!enabled || !validVal}
             onClick={() => onOp({ kind: 'enqueue', value: v(), sourceLine: 0 })} />
           <OpButton en="dequeue" ar="إزالة" variant="remove" disabled={!enabled}
@@ -145,7 +173,7 @@ export function OpToolbar({
       {tab === 'list' && (
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            <NumInput label={S.toolbar.value} value={val} onChange={setVal} />
+            <ValueInput label={S.toolbar.value} value={val} onChange={setVal} />
             <OpButton en="insertHead" ar="بالبداية" variant="add" disabled={!enabled || !validVal}
               onClick={() => onOp({ kind: 'insertHead', value: v(), sourceLine: 0 })} />
             <OpButton en="insertTail" ar="بالنهاية" variant="add" disabled={!enabled || !validVal}

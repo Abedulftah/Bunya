@@ -85,7 +85,9 @@ export function LinkedListCanvas({ frame, transMs }: { frame: FrameList; transMs
               <span className="flex w-[26px] items-center justify-center border-r border-black/25 bg-black/25 font-mono text-sm">
                 {i === nodes.length - 1 ? '∅' : '•'}
               </span>
-              <span className="flex flex-1 items-center justify-center text-lg font-bold">{el.value}</span>
+              <span className={`flex flex-1 items-center justify-center font-bold ${String(el.value).length <= 2 ? 'text-lg' : 'text-xs'}`}>
+                {el.value}
+              </span>
             </div>
           );
         })}

@@ -30,8 +30,8 @@ export function bubbleSortSteps(bars: VisualElement[]): Step[] {
 
   for (let i = 0; i < n - 1; i++) {
     for (let j = 0; j < n - 1 - i; j++) {
-      const a = work[j].value;
-      const b = work[j + 1].value;
+      const a = Number(work[j].value);
+      const b = Number(work[j + 1].value);
       steps.push({
         frame: frame(snap(k => (k === j || k === j + 1 ? 'comparing' : null))),
         line: 3,

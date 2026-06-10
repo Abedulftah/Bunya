@@ -24,6 +24,7 @@ page.on('pageerror', e => console.log('PAGE ERROR:', e.message));
 
 const shot = name => page.screenshot({ path: `${OUT}/${name}.png` });
 const status = () => page.evaluate(() => document.querySelector('[role=status]')?.textContent ?? '');
+const bodyHas = text => page.evaluate(t => document.body.textContent.includes(t), text);
 const clickBtn = text =>
   page.evaluate(t => {
     const el = [...document.querySelectorAll('button')].find(b => b.textContent.includes(t) && !b.disabled);
@@ -37,6 +38,20 @@ const setSpeed = v =>
     setter.call(r, String(v));
     r.dispatchEvent(new Event('input', { bubbles: true }));
   }, v);
+const setToolbarValue = v =>
+  page.evaluate(v => {
+    const input = document.querySelector('input[type=text]');
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    setter.call(input, v);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }, v);
+const setEditor = text =>
+  page.evaluate(t => {
+    const ta = document.querySelector('textarea');
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+    setter.call(ta, t);
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+  }, text);
 async function waitStatus(substr, timeout = 30000) {
   const t0 = Date.now();
   while (Date.now() - t0 < timeout) {
@@ -51,111 +66,119 @@ await page.goto(URL, { waitUntil: 'networkidle0' });
 await sleep(800);
 await shot('01-stack-initial');
 
-// --- Stack push/pop via buttons ---
+// --- Stack push/pop via buttons, including a generic (string) value ---
 await setSpeed(2);
 await clickBtn('push');
 await sleep(900);
 await shot('02-stack-push-mid');
 check('stack push finishes', !!(await waitStatus('تمت إضافة', 8000)));
+await setToolbarValue('أحمد');
+await sleep(150);
+await clickBtn('push');
+check('stack push accepts text value (generic T)', !!(await waitStatus('تمت إضافة أحمد', 8000)));
+await shot('03-stack-string-value');
 await clickBtn('pop');
-await sleep(900);
-await shot('03-stack-pop-mid');
 check('stack pop finishes', !!(await waitStatus('تمت إزالة', 8000)));
 
 // --- Step backward then forward ---
+await setToolbarValue('42');
+await sleep(150);
 await clickBtn('push');
 await waitStatus('تمت إضافة', 8000);
-const backBtn = 'خطوة للخلف';
 await page.evaluate(t => {
   [...document.querySelectorAll('button')].find(b => (b.getAttribute('title') || '').includes(t)).click();
-}, backBtn);
+}, 'خطوة للخلف');
 await sleep(300);
 const stepCounter = await page.evaluate(() => [...document.querySelectorAll('span')].map(s => s.textContent).find(t => t?.includes('الخطوة')));
 check('step backward works', !!stepCounter, stepCounter ?? '');
-await shot('04-step-back');
 
 // --- Queue ---
 await clickBtn('Queue');
 await sleep(400);
 await clickBtn('enqueue');
 await sleep(900);
-await shot('05-queue-enqueue-mid');
+await shot('04-queue-enqueue-mid');
 check('enqueue finishes', !!(await waitStatus('انضم', 8000)));
 await clickBtn('dequeue');
 check('dequeue finishes', !!(await waitStatus('غادر', 8000)));
-await shot('06-queue-after');
 
-// --- Sort ---
+// --- Sort (toolbar-only; editor replaced by info card) ---
 await clickBtn('Bubble Sort');
 await sleep(400);
+check('sort tab shows code-unavailable card', await bodyHas('تنفيذ الكود متاح'));
 await clickBtn('ابدأ الفرز');
 await sleep(1800);
-await shot('07-sort-comparing');
+await shot('05-sort-comparing');
 await setSpeed(4);
 check('sort completes', !!(await waitStatus('اكتمل الفرز', 60000)));
-await shot('08-sort-done');
 
-// --- Linked list: insertAt with traversal + bypass arrow ---
+// --- Linked list: insertAt with traversal + bypass arrow (toolbar-only) ---
 await clickBtn('Linked List');
 await sleep(400);
+check('list tab shows code-unavailable card', await bodyHas('تنفيذ الكود متاح'));
 await setSpeed(1);
-await clickBtn('في موقع'); // insertAt(1, 7)
+await clickBtn('في موقع'); // insertAt(1, ...)
 await sleep(2800);
-await shot('09-list-insert-mid');
+await shot('06-list-insert-mid');
 check('insertAt finishes', !!(await waitStatus('تمت إضافة', 15000)));
 await setSpeed(2);
 await clickBtn('من موقع'); // deleteAt(1)
-await sleep(1600);
-await shot('10-list-delete-mid');
 check('deleteAt finishes', !!(await waitStatus('تم حذف', 15000)));
-await shot('11-list-after');
 
-// --- Code runner on stack tab ---
+// --- Code runner on stack tab (template pushes Arabic strings) ---
 await clickBtn('Stack');
 await sleep(400);
 await setSpeed(4);
 await clickBtn('تشغيل الكود');
 await sleep(1200);
-await shot('12-editor-running');
-check('code run reaches pop', !!(await waitStatus('تمت إزالة', 30000)));
+await shot('07-editor-running');
+check('template code (string values) runs to pop', !!(await waitStatus('تمت إزالة', 30000)));
 
 // --- Interpreter error reporting ---
-await page.evaluate(() => {
-  const ta = document.querySelector('textarea');
-  const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
-  setter.call(ta, 'mystack.push(5);\nmystack.fly();');
-  ta.dispatchEvent(new Event('input', { bubbles: true }));
-});
+await setEditor('mystack.push(5);\nmystack.fly();');
 await sleep(200);
 await clickBtn('تشغيل الكود');
 await sleep(400);
-const errText = await page.evaluate(() => document.body.textContent.includes('عملية غير معروفة'));
-check('interpreter reports unknown op with line', errText);
-await shot('13-editor-error');
+check('unknown method rejected with line', await bodyHas('عملية غير معروفة'));
+await shot('08-editor-error');
 
-// --- Wrong-tab op error ---
-await page.evaluate(() => {
-  const ta = document.querySelector('textarea');
-  const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
-  setter.call(ta, 'myqueue.enqueue(3);');
-  ta.dispatchEvent(new Event('input', { bubbles: true }));
-});
+await setEditor('mylist.insertHead(5);');
 await sleep(200);
 await clickBtn('تشغيل الكود');
 await sleep(400);
-check('wrong-tab op rejected', await page.evaluate(() => document.body.textContent.includes('غير متاحة')));
+check('non-spec method (insertHead) rejected from code', await bodyHas('عملية غير معروفة'));
 
-// --- Empty pop underflow (pop repeatedly) ---
-await page.evaluate(() => {
-  const ta = document.querySelector('textarea');
-  const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
-  setter.call(ta, 'mystack.pop();\nmystack.pop();\nmystack.pop();\nmystack.pop();\nmystack.pop();\nmystack.pop();\nmystack.pop();\nmystack.pop();');
-  ta.dispatchEvent(new Event('input', { bubbles: true }));
-});
+await setEditor('myqueue.enqueue(3);');
+await sleep(200);
+await clickBtn('تشغيل الكود');
+await sleep(400);
+check('wrong-tab op rejected', await bodyHas('غير متاحة'));
+
+// --- Generic type enforcement (like template T) ---
+await setEditor('Stack<int> s = new Stack<int>();\ns.push("أحمد");');
+await sleep(200);
+await clickBtn('تشغيل الكود');
+await sleep(400);
+check('Stack<int> rejects a string value', await bodyHas('لا تطابق النوع'));
+await shot('09-type-mismatch');
+
+await setEditor('Stack<string> s = new Stack<string>();\ns.push("نور");\ns.push("هدى");\ns.pop();');
+await sleep(200);
+await clickBtn('تشغيل الكود');
+check('Stack<string> accepts strings', !!(await waitStatus('تمت إزالة هدى', 20000)));
+
+await setEditor('mystack.push(hello);');
+await sleep(200);
+await clickBtn('تشغيل الكود');
+await sleep(400);
+check('unquoted text gets quotes hint', await bodyHas('علامتي اقتباس'));
+
+// --- Empty pop underflow (runtime error halts) ---
+await setEditor(Array(10).fill('mystack.pop();').join('\n'));
 await sleep(200);
 await clickBtn('تشغيل الكود');
 check('runtime underflow halts with error', !!(await waitStatus('المكدس فارغ', 30000)));
-await shot('14-underflow-error');
+await shot('10-underflow-error');
 
 console.log('\n--- summary ---');
 console.log(results.filter(r => r.ok).length + '/' + results.length + ' passed');

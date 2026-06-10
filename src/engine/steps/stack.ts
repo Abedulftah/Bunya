@@ -1,20 +1,20 @@
-import type { FrameStack, Step, VisualElement } from '../../types';
+import type { FrameStack, Step, Value, VisualElement } from '../../types';
 import { MAX_STACK } from '../../constants';
 import { makeEl } from '../ids';
 import { S } from '../../i18n/strings';
 
 export const STACK_PSEUDO = {
   push: [
-    'void push(int v) {',
+    'void push(T v) {',
     '  if (size == MAX) error;',
     '  top = top + 1;',
     '  arr[top] = v;',
     '}',
   ],
   pop: [
-    'int pop() {',
+    'T pop() {',
     '  if (size == 0) error;',
-    '  int v = arr[top];',
+    '  T v = arr[top];',
     '  top = top - 1;',
     '  return v;',
     '}',
@@ -29,7 +29,7 @@ const frame = (items: VisualElement[]): FrameStack => ({ kind: 'stack', items })
 const step = (items: VisualElement[], line: number, description: string, error = false): Step =>
   ({ frame: frame(items), line, lineSource: 'pseudo', description, error });
 
-export function pushSteps(items: VisualElement[], value: number): Step[] {
+export function pushSteps(items: VisualElement[], value: Value): Step[] {
   const base = reset(items);
   const steps: Step[] = [step(base, 1, S.stack.checkFull)];
   if (items.length >= MAX_STACK) {
