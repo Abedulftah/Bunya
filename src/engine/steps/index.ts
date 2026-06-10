@@ -1,8 +1,8 @@
 import type { Frame, Operation, OpKind, Step, Value, VisualElement } from '../../types';
 import { kindOfValue, typeNameOf } from '../../types';
 import { S } from '../../i18n/strings';
-import { pushSteps, popSteps, STACK_PSEUDO } from './stack';
-import { enqueueSteps, dequeueSteps, QUEUE_PSEUDO } from './queue';
+import { pushSteps, popSteps, topSteps, STACK_PSEUDO } from './stack';
+import { enqueueSteps, dequeueSteps, headSteps, QUEUE_PSEUDO } from './queue';
 import { bubbleSortSteps, SORT_PSEUDO } from './bubbleSort';
 import {
   insertHeadSteps,
@@ -19,13 +19,16 @@ function frameFor(op: Operation, els: VisualElement[]): Frame {
   switch (op.kind) {
     case 'push':
     case 'pop':
+    case 'top':
       return { kind: 'stack', items: els };
     case 'enqueue':
     case 'dequeue':
+    case 'head':
       return { kind: 'queue', items: els };
     case 'bubbleSort':
       return { kind: 'sort', bars: els };
     case 'newStructure':
+    case 'isEmpty':
       return op.target === 'stack' ? { kind: 'stack', items: els } : { kind: 'queue', items: els };
     default:
       return { kind: 'list', nodes: els, arrows: adjacentArrows(els.length) };
@@ -65,8 +68,17 @@ export function generateSteps(data: VisualElement[], op: Operation): Step[] {
     }];
     case 'push': return pushSteps(data, op.value);
     case 'pop': return popSteps(data);
+    case 'top': return topSteps(data);
     case 'enqueue': return enqueueSteps(data, op.value);
     case 'dequeue': return dequeueSteps(data);
+    case 'head': return headSteps(data);
+    case 'isEmpty': {
+      const fr = frameFor(op, data);
+      return [
+        { frame: fr, line: 0, lineSource: 'pseudo', description: S.isEmptyCheck },
+        { frame: fr, line: 1, lineSource: 'pseudo', description: S.isEmptyResult(data.length === 0) },
+      ];
+    }
     case 'bubbleSort': return bubbleSortSteps(data);
     case 'insertHead': return insertHeadSteps(data, op.value);
     case 'insertTail': return insertTailSteps(data, op.value);
@@ -89,8 +101,11 @@ export const PSEUDO_BY_OP: Record<OpKind, PseudoListing> = {
   },
   push: { title: S.ops.push, lines: STACK_PSEUDO.push },
   pop: { title: S.ops.pop, lines: STACK_PSEUDO.pop },
-  enqueue: { title: S.ops.enqueue, lines: QUEUE_PSEUDO.enqueue },
-  dequeue: { title: S.ops.dequeue, lines: QUEUE_PSEUDO.dequeue },
+  top: { title: S.ops.top, lines: STACK_PSEUDO.top },
+  enqueue: { title: S.ops.enqueue, lines: QUEUE_PSEUDO.insert },
+  dequeue: { title: S.ops.dequeue, lines: QUEUE_PSEUDO.remove },
+  head: { title: S.ops.head, lines: QUEUE_PSEUDO.head },
+  isEmpty: { title: S.ops.isEmpty, lines: ['boolean isEmpty() {', '  return size == 0;', '}'] },
   bubbleSort: { title: S.ops.bubbleSort, lines: SORT_PSEUDO },
   insertHead: { title: S.ops.insertHead, lines: LIST_PSEUDO.insertHead },
   insertTail: { title: S.ops.insertTail, lines: LIST_PSEUDO.insertTail },

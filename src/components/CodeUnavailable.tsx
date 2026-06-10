@@ -3,9 +3,12 @@ import { S } from '../i18n/strings';
 
 const SUPPORTED = `Stack<int> mystack = new Stack<int>();
 mystack.push(15);
+mystack.top();
 mystack.pop();
-myqueue.enqueue("أحمد");
-myqueue.dequeue();`;
+myqueue.insert("أحمد");
+myqueue.head();
+myqueue.remove();
+myqueue.isEmpty();`;
 
 /**
  * Shown instead of the editor on tabs whose operations are not part of the

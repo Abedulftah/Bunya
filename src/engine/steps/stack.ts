@@ -19,6 +19,12 @@ export const STACK_PSEUDO = {
     '  return v;',
     '}',
   ],
+  top: [
+    'T top() {',
+    '  if (size == 0) error;',
+    '  return arr[top];',
+    '}',
+  ],
 };
 
 const reset = (els: VisualElement[]): VisualElement[] =>
@@ -40,6 +46,21 @@ export function pushSteps(items: VisualElement[], value: Value): Step[] {
   steps.push(step([...base, { ...el, state: 'entering' }], 2, S.stack.raiseTop));
   steps.push(step([...base, { ...el, state: 'active' }], 3, S.stack.place(value)));
   steps.push(step([...base, el], 4, S.stack.pushed(value)));
+  return steps;
+}
+
+/** Bagrut top(): read the top value without removing it. */
+export function topSteps(items: VisualElement[]): Step[] {
+  const base = reset(items);
+  const steps: Step[] = [step(base, 1, S.stack.checkEmpty)];
+  if (items.length === 0) {
+    steps.push(step(base, 1, S.stack.emptyErrTop, true));
+    return steps;
+  }
+  const t = base[base.length - 1];
+  const rest = base.slice(0, -1);
+  steps.push(step([...rest, { ...t, state: 'active' }], 2, S.stack.peek(t.value)));
+  steps.push(step(base, 3, S.stack.peekDone(t.value)));
   return steps;
 }
 

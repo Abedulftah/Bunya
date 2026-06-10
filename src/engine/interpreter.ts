@@ -27,21 +27,28 @@ function normalizeDigits(s: string): string {
 }
 
 /**
- * Only the operations named in instruction.md are accepted from code:
- * push/pop (stack) and enqueue/dequeue (queue). The other structures
- * are animated via their toolbar buttons.
+ * The code engine accepts the Bagrut class interfaces:
+ * Stack — push/pop/top/isEmpty; Queue — insert/remove/head/isEmpty
+ * (enqueue/dequeue kept as aliases since instruction.md uses them).
+ * The other structures are animated via their toolbar buttons.
  */
 interface MethodSpec {
-  kind: 'push' | 'pop' | 'enqueue' | 'dequeue';
+  kind: 'push' | 'pop' | 'top' | 'enqueue' | 'dequeue' | 'head' | 'isEmpty';
   args: number;
-  tab: TabKind;
+  tabs: TabKind[];
 }
 
 const METHODS: Record<string, MethodSpec> = {
-  push: { kind: 'push', args: 1, tab: 'stack' },
-  pop: { kind: 'pop', args: 0, tab: 'stack' },
-  enqueue: { kind: 'enqueue', args: 1, tab: 'queue' },
-  dequeue: { kind: 'dequeue', args: 0, tab: 'queue' },
+  push: { kind: 'push', args: 1, tabs: ['stack'] },
+  pop: { kind: 'pop', args: 0, tabs: ['stack'] },
+  top: { kind: 'top', args: 0, tabs: ['stack'] },
+  insert: { kind: 'enqueue', args: 1, tabs: ['queue'] },
+  remove: { kind: 'dequeue', args: 0, tabs: ['queue'] },
+  head: { kind: 'head', args: 0, tabs: ['queue'] },
+  // instruction.md spells these enqueue/dequeue — accepted as aliases
+  enqueue: { kind: 'enqueue', args: 1, tabs: ['queue'] },
+  dequeue: { kind: 'dequeue', args: 0, tabs: ['queue'] },
+  isempty: { kind: 'isEmpty', args: 0, tabs: ['stack', 'queue'] },
 };
 
 // e.g. `Stack<int> s = new Stack<int>();` — captures the type parameter T and the variable name
@@ -118,11 +125,15 @@ export function parseProgram(text: string, tab: TabKind): ParseResult {
       const [, varName, name, argStr] = m;
       const spec = METHODS[name.toLowerCase()];
       if (!spec) return err(li, S.errors.unknownOp(name));
-      if (spec.tab !== tab) return err(li, S.errors.wrongTab(name));
+      if (!spec.tabs.includes(tab)) return err(li, S.errors.wrongTab(name));
       const trimmedArgs = argStr.trim();
       if (spec.args === 0) {
         if (trimmedArgs) return err(li, S.errors.badArgs(name, 0));
-        ops.push({ kind: spec.kind, sourceLine: li } as Operation);
+        if (spec.kind === 'isEmpty') {
+          ops.push({ kind: 'isEmpty', target: tab as 'stack' | 'queue', sourceLine: li });
+        } else {
+          ops.push({ kind: spec.kind, sourceLine: li } as Operation);
+        }
         continue;
       }
       if (!trimmedArgs) return err(li, S.errors.badArgs(name, 1));

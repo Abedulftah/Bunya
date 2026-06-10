@@ -83,6 +83,12 @@ await shot('03-type-mixed-toolbar');
 await clickBtn('pop');
 check('stack pop finishes', !!(await waitStatus('تمت إزالة', 8000)));
 
+// Bagrut peek + query ops
+await clickBtn('top');
+check('top() peeks without removing', !!(await waitStatus('لم يتغيّر', 8000)));
+await clickBtn('isEmpty');
+check('isEmpty() reports false on non-empty stack', !!(await waitStatus('أعادت false', 8000)));
+
 // --- Step backward then forward ---
 await setToolbarValue('42');
 await sleep(150);
@@ -98,16 +104,24 @@ check('step backward works', !!stepCounter, stepCounter ?? '');
 // --- Queue ---
 await clickBtn('Queue');
 await sleep(400);
-await clickBtn('enqueue');
+await clickBtn('insert');
 await sleep(900);
-await shot('04-queue-enqueue-mid');
-check('enqueue finishes', !!(await waitStatus('انضم', 8000)));
-await clickBtn('dequeue');
-check('dequeue finishes', !!(await waitStatus('غادر', 8000)));
+await shot('04-queue-insert-mid');
+check('insert finishes', !!(await waitStatus('انضم', 8000)));
+await clickBtn('remove');
+check('remove finishes', !!(await waitStatus('غادر', 8000)));
+await clickBtn('head');
+check('head() peeks without removing', !!(await waitStatus('لم يتغيّر', 8000)));
 await setToolbarValue('سارة');
 await sleep(150);
-await clickBtn('enqueue');
+await clickBtn('insert');
 check('toolbar rejects mixing string into int queue', !!(await waitStatus('نوع عناصر الهيكل', 8000)));
+
+// instruction.md spellings still accepted as aliases
+await setEditor('myqueue.enqueue(5);\nmyqueue.dequeue();');
+await sleep(200);
+await clickBtn('تشغيل الكود');
+check('enqueue/dequeue aliases still run', !!(await waitStatus('غادر', 20000)));
 
 // --- Sort (toolbar-only; editor replaced by info card) ---
 await clickBtn('Bubble Sort');

@@ -3,20 +3,27 @@ import { MAX_QUEUE } from '../../constants';
 import { makeEl } from '../ids';
 import { S } from '../../i18n/strings';
 
+// Bagrut method names: insert/remove/head (enqueue/dequeue are accepted aliases)
 export const QUEUE_PSEUDO = {
-  enqueue: [
-    'void enqueue(T v) {',
+  insert: [
+    'void insert(T v) {',
     '  if (size == MAX) error;',
     '  arr[rear] = v;',
     '  rear = rear + 1;',
     '}',
   ],
-  dequeue: [
-    'T dequeue() {',
+  remove: [
+    'T remove() {',
     '  if (size == 0) error;',
     '  T v = arr[front];',
     '  front = front + 1;',
     '  return v;',
+    '}',
+  ],
+  head: [
+    'T head() {',
+    '  if (size == 0) error;',
+    '  return arr[front];',
     '}',
   ],
 };
@@ -41,6 +48,20 @@ export function enqueueSteps(items: VisualElement[], value: Value): Step[] {
   steps.push(step([...base, { ...el, state: 'entering' }], 2, S.queue.placeRear(value)));
   steps.push(step([...base, { ...el, state: 'active' }], 3, S.queue.advanceRear));
   steps.push(step([...base, el], 4, S.queue.enqueued(value)));
+  return steps;
+}
+
+/** Bagrut head(): read the front value without removing it. */
+export function headSteps(items: VisualElement[]): Step[] {
+  const base = reset(items);
+  const steps: Step[] = [step(base, 1, S.queue.checkEmpty)];
+  if (items.length === 0) {
+    steps.push(step(base, 1, S.queue.emptyErrHead, true));
+    return steps;
+  }
+  const [front, ...rest] = base;
+  steps.push(step([{ ...front, state: 'active' }, ...rest], 2, S.queue.peek(front.value)));
+  steps.push(step(base, 3, S.queue.peekDone(front.value)));
   return steps;
 }
 

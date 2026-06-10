@@ -1,23 +1,23 @@
 import type { OpKind, TabKind } from '../types';
 
 /**
- * Initial editor program per tab. Only the operations named in
- * instruction.md are executable from code (push/pop, enqueue/dequeue);
- * the sort and linked-list tabs are driven from the toolbar instead.
+ * Initial editor program per tab, using the Bagrut class interfaces:
+ * Stack — push/pop/top/isEmpty; Queue — insert/remove/head/isEmpty.
+ * The sort and linked-list tabs are driven from the toolbar instead.
  */
 export const CODE_TEMPLATES: Record<TabKind, string> = {
   stack: `// المكدس عام النوع T — جرّب <int> أو <string>، كل العناصر من نوع واحد
 Stack<string> mystack = new Stack<string>();
 mystack.push("أحمد");
 mystack.push("ليلى");
-mystack.push("سارة");
+mystack.top();
 mystack.pop();`,
   queue: `// الطابور عام النوع T — أول من يدخل أول من يخرج (FIFO)
 Queue<string> myqueue = new Queue<string>();
-myqueue.enqueue("سامي");
-myqueue.enqueue("نور");
-myqueue.enqueue("هدى");
-myqueue.dequeue();`,
+myqueue.insert("سامي");
+myqueue.insert("نور");
+myqueue.head();
+myqueue.remove();`,
   sort: '',
   list: '',
 };

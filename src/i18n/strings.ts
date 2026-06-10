@@ -35,6 +35,9 @@ export const S = {
 
   statusIdle: 'اختر عمليةً من الأزرار أو شغّل الكود في المحرر لبدء المحاكاة',
   declCreated: (t?: string) => `ننشئ هيكلًا جديدًا فارغًا${t ? ` من النوع <${t}>` : ''} ✓`,
+  isEmptyCheck: 'نفحص: هل الهيكل فارغ؟ (size == 0)',
+  isEmptyResult: (empty: boolean) =>
+    `isEmpty()‎ أعادت ${empty ? 'true — الهيكل فارغ' : 'false — الهيكل ليس فارغًا'}`,
 
   legend: {
     title: 'مفتاح الألوان:',
@@ -69,8 +72,11 @@ export const S = {
     newStructure: 'إنشاء هيكل جديد — new',
     push: 'الإدخال إلى المكدس — push',
     pop: 'الإخراج من المكدس — pop',
-    enqueue: 'الإضافة إلى الطابور — enqueue',
-    dequeue: 'الإزالة من الطابور — dequeue',
+    top: 'قراءة القمة دون إزالة — top',
+    enqueue: 'الإضافة إلى الطابور — insert',
+    dequeue: 'الإزالة من الطابور — remove',
+    head: 'قراءة المقدمة دون إزالة — head',
+    isEmpty: 'هل الهيكل فارغ؟ — isEmpty',
     bubbleSort: 'فرز الفقاعات — Bubble Sort',
     insertHead: 'إضافة في البداية — insertHead',
     insertTail: 'إضافة في النهاية — insertTail',
@@ -93,6 +99,9 @@ export const S = {
     readTop: (v: Value) => `نقرأ قيمة القمة: ${v}`,
     lowerTop: 'نخفض مؤشر القمة top بمقدار 1',
     popped: (v: Value) => `تمت إزالة ${v} من المكدس ✓`,
+    emptyErrTop: 'خطأ: المكدس فارغ! لا توجد قمة لقراءتها',
+    peek: (v: Value) => `نقرأ قيمة القمة: ${v} — دون إزالتها`,
+    peekDone: (v: Value) => `top()‎ أعادت ${v} والمكدس لم يتغيّر ✓`,
   },
 
   queue: {
@@ -103,13 +112,16 @@ export const S = {
     checkFull: 'نتحقق: هل الطابور ممتلئ؟',
     full: `خطأ: الطابور ممتلئ! (الحد الأقصى ${MAX_QUEUE} عناصر)`,
     checkEmpty: 'نتحقق: هل الطابور فارغ؟',
-    emptyErr: 'خطأ: الطابور فارغ! لا يمكن تنفيذ dequeue',
+    emptyErr: 'خطأ: الطابور فارغ! لا يمكن تنفيذ remove',
     placeRear: (v: Value) => `نضع القيمة ${v} في مؤخرة الطابور`,
     advanceRear: 'نقدّم مؤشر المؤخرة rear',
     enqueued: (v: Value) => `انضم ${v} إلى الطابور ✓`,
     readFront: (v: Value) => `نقرأ قيمة المقدمة: ${v}`,
     advanceFront: 'نقدّم مؤشر المقدمة front',
     dequeued: (v: Value) => `غادر ${v} الطابور ✓`,
+    emptyErrHead: 'خطأ: الطابور فارغ! لا توجد مقدمة لقراءتها',
+    peek: (v: Value) => `نقرأ قيمة المقدمة: ${v} — دون إزالتها`,
+    peekDone: (v: Value) => `head()‎ أعادت ${v} والطابور لم يتغيّر ✓`,
   },
 
   sort: {
