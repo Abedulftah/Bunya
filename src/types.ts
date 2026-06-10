@@ -45,6 +45,7 @@ export interface Step {
 }
 
 export type Operation =
+  | { kind: 'newStructure'; target: 'stack' | 'queue'; typeParam?: string; sourceLine: number }
   | { kind: 'push'; value: Value; sourceLine: number }
   | { kind: 'pop'; sourceLine: number }
   | { kind: 'enqueue'; value: Value; sourceLine: number }
@@ -66,4 +67,20 @@ export function frameElements(frame: Frame): VisualElement[] {
     case 'sort': return frame.bars;
     case 'list': return frame.nodes;
   }
+}
+
+/**
+ * A structure instance is homogeneous, like a generic container with a fixed T:
+ * numbers and text never mix. (int vs double strictness is enforced separately
+ * for explicitly declared type parameters in the interpreter.)
+ */
+export function kindOfValue(v: Value): 'number' | 'text' {
+  return typeof v === 'string' ? 'text' : 'number';
+}
+
+/** Human-readable T of the elements currently in a structure. */
+export function typeNameOf(els: VisualElement[]): string {
+  if (els.length === 0) return 'T';
+  if (typeof els[0].value === 'string') return 'string';
+  return els.every(e => Number.isInteger(e.value)) ? 'int' : 'double';
 }

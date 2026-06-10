@@ -1,10 +1,10 @@
 import { MousePointerClick } from 'lucide-react';
 import { S } from '../i18n/strings';
 
-const SUPPORTED = `mystack.push(15);
-mystack.push("أحمد");
+const SUPPORTED = `Stack<int> mystack = new Stack<int>();
+mystack.push(15);
 mystack.pop();
-myqueue.enqueue(8);
+myqueue.enqueue("أحمد");
 myqueue.dequeue();`;
 
 /**

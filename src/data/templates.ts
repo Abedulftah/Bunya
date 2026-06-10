@@ -6,17 +6,17 @@ import type { OpKind, TabKind } from '../types';
  * the sort and linked-list tabs are driven from the toolbar instead.
  */
 export const CODE_TEMPLATES: Record<TabKind, string> = {
-  stack: `// المكدس عام النوع — مثل القالب T: جرّب أعدادًا أو نصوصًا
+  stack: `// المكدس عام النوع T — جرّب <int> أو <string>، كل العناصر من نوع واحد
 Stack<string> mystack = new Stack<string>();
 mystack.push("أحمد");
 mystack.push("ليلى");
 mystack.push("سارة");
 mystack.pop();`,
-  queue: `// الطابور يقبل أي نوع T — أول من يدخل أول من يخرج (FIFO)
-Queue<T> myqueue = new Queue<T>();
+  queue: `// الطابور عام النوع T — أول من يدخل أول من يخرج (FIFO)
+Queue<string> myqueue = new Queue<string>();
 myqueue.enqueue("سامي");
-myqueue.enqueue(7);
 myqueue.enqueue("نور");
+myqueue.enqueue("هدى");
 myqueue.dequeue();`,
   sort: '',
   list: '',

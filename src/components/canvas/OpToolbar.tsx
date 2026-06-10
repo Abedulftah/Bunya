@@ -98,8 +98,8 @@ function ValueInput({
 
 const isInt = (s: string, max = 99) => /^\d+$/.test(s.trim()) && parseInt(s, 10) <= max;
 
-/** Numeric-looking input becomes a number, anything else stays text — like a generic T. */
-const toValue = (s: string): Value => (/^-?\d+$/.test(s.trim()) ? parseInt(s.trim(), 10) : s.trim());
+/** Numeric-looking input (int or decimal) becomes a number, anything else stays text — like a generic T. */
+const toValue = (s: string): Value => (/^-?\d+(\.\d+)?$/.test(s.trim()) ? Number(s.trim()) : s.trim());
 
 export function OpToolbar({
   tab,

@@ -106,6 +106,10 @@ export function parseProgram(text: string, tab: TabKind): ParseResult {
     const decl = code.match(DECLARATION_RE);
     if (decl) {
       if (decl[1]) declaredType.set(decl[2], decl[1]);
+      // `new Stack<T>()` creates a fresh empty structure, replacing the canvas contents
+      if (tab === 'stack' || tab === 'queue') {
+        ops.push({ kind: 'newStructure', target: tab, typeParam: decl[1], sourceLine: li });
+      }
       continue;
     }
 
