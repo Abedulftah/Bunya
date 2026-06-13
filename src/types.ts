@@ -42,12 +42,22 @@ export interface Step {
   lineSource: LineSource;
   description: string;
   error?: boolean;
+  /** Editor source line (0-based) — set only on steps compiled from the code editor. */
+  editorLine?: number;
+  /** Op kind for selecting the right pseudo-code listing during code runs. */
+  opKind?: OpKind;
+  /** Snapshot of local variables at this step (function mode only). */
+  locals?: Record<string, string>;
+  /** Return value produced by the function (set on the final return step). */
+  returnValue?: string;
+  /** Variable name of the structure being operated on (set when running code). */
+  structureName?: string;
 }
 
 // Note: the queue's Bagrut method names are insert/remove (head to peek);
 // internally the op kinds stay 'enqueue'/'dequeue' and both spellings parse.
 export type Operation =
-  | { kind: 'newStructure'; target: 'stack' | 'queue' | 'list'; typeParam?: string; sourceLine: number }
+  | { kind: 'newStructure'; target: 'stack' | 'queue' | 'list'; typeParam?: string; varName?: string; sourceLine: number }
   | { kind: 'newSort'; bars: number[]; sourceLine: number }
   | { kind: 'push'; value: Value; sourceLine: number }
   | { kind: 'pop'; sourceLine: number }

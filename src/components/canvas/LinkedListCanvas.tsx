@@ -92,23 +92,37 @@ export function LinkedListCanvas({ frame, transMs }: { frame: FrameList; transMs
           );
         })}
 
-        {nodes.length > 0 && (
+        {/* head and tail pointers share one row; a lone node carries both */}
+        {nodes.length === 1 && (
           <div
-            className="absolute flex flex-col items-center font-mono text-xs font-bold text-emerald-300 transition-all"
-            style={{ top: 8, left: leftOf(0) + NODE_W / 2 - 22, width: 44, transitionDuration: dur }}
+            className="absolute flex flex-col items-center font-mono text-xs font-bold transition-all"
+            style={{ top: 8, left: leftOf(0) + NODE_W / 2 - 30, width: 60, transitionDuration: dur }}
           >
-            head
-            <ArrowDown size={13} />
+            <span>
+              <span className="text-emerald-300">head</span>
+              <span className="text-slate-500"> · </span>
+              <span className="text-sky-300">tail</span>
+            </span>
+            <ArrowDown size={13} className="text-slate-300" />
           </div>
         )}
-        {nodes.length > 0 && (
-          <div
-            className="absolute flex flex-col items-center font-mono text-xs font-bold text-sky-300 transition-all"
-            style={{ top: 36, left: leftOf(nodes.length - 1) + NODE_W / 2 - 22, width: 44, transitionDuration: dur }}
-          >
-            tail
-            <ArrowDown size={13} />
-          </div>
+        {nodes.length > 1 && (
+          <>
+            <div
+              className="absolute flex flex-col items-center font-mono text-xs font-bold text-emerald-300 transition-all"
+              style={{ top: 8, left: leftOf(0) + NODE_W / 2 - 22, width: 44, transitionDuration: dur }}
+            >
+              head
+              <ArrowDown size={13} />
+            </div>
+            <div
+              className="absolute flex flex-col items-center font-mono text-xs font-bold text-sky-300 transition-all"
+              style={{ top: 8, left: leftOf(nodes.length - 1) + NODE_W / 2 - 22, width: 44, transitionDuration: dur }}
+            >
+              tail
+              <ArrowDown size={13} />
+            </div>
+          </>
         )}
         {cursorIndex !== undefined && nodes[cursorIndex] && (
           <div

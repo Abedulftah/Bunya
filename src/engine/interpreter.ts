@@ -18,7 +18,7 @@ const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
 
 /** Students often type Arabic-Indic digits — normalize them to ASCII. */
-function normalizeDigits(s: string): string {
+export function normalizeDigits(s: string): string {
   return s.replace(/[٠-٩۰-۹]/g, d => {
     const a = ARABIC_DIGITS.indexOf(d);
     if (a >= 0) return String(a);
@@ -32,9 +32,9 @@ function normalizeDigits(s: string): string {
 // Using an array (not a Record) lets us have duplicate method names with
 // different tab scopes.
 
-type ArgSpec = 'none' | 'value' | 'index' | 'index+value';
+export type ArgSpec = 'none' | 'value' | 'index' | 'index+value';
 
-interface MethodEntry {
+export interface MethodEntry {
   name: string;
   kind: Operation['kind'];
   argSpec: ArgSpec;
@@ -65,7 +65,7 @@ const METHODS: MethodEntry[] = [
   { name: 'deleteat',   kind: 'deleteAt',   argSpec: 'index',       tabs: ['list'] },
 ];
 
-function findMethod(name: string, tab: TabKind): MethodEntry | undefined {
+export function findMethod(name: string, tab: TabKind): MethodEntry | undefined {
   return METHODS.find(m => m.name === name.toLowerCase() && m.tabs.includes(tab));
 }
 
@@ -91,11 +91,19 @@ const SORT_CALL_RE = /^(?:\w+\.)?(?:bubbleSort|sort)\s*\([^)]*\)\s*;?$/;
 
 // ─── Value parsing ────────────────────────────────────────────────────────────
 
-type ParsedValue =
-  | { ok: true; value: Value; valueKind: 'int' | 'double' | 'text' }
+export type ValueKind = 'int' | 'double' | 'text';
+
+export type ParsedValue =
+  | { ok: true; value: Value; valueKind: ValueKind }
   | { ok: false; message: string };
 
-function parseValue(raw: string): ParsedValue {
+/** Classify an already-evaluated runtime value as int / double / text. */
+export function valueKindOf(v: Value): ValueKind {
+  if (typeof v === 'string') return 'text';
+  return Number.isInteger(v) ? 'int' : 'double';
+}
+
+export function parseValue(raw: string): ParsedValue {
   const s = raw.trim();
   const quoted = s.match(/^"([^"]*)"$|^'([^']*)'$/);
   if (quoted) {
@@ -118,7 +126,7 @@ function parseIndex(raw: string): { ok: true; index: number } | { ok: false; mes
   return { ok: false, message: S.errors.badIndex };
 }
 
-function matchesType(t: string, valueKind: 'int' | 'double' | 'text', value: Value): boolean {
+export function matchesType(t: string, valueKind: ValueKind, value: Value): boolean {
   switch (t.toLowerCase()) {
     case 'int':
     case 'integer':
@@ -183,6 +191,7 @@ export function parseProgram(text: string, tab: TabKind): ParseResult {
           kind: 'newStructure',
           target: tab as 'stack' | 'queue' | 'list',
           typeParam: decl[1],
+          varName: decl[2],
           sourceLine: li,
         });
       }
@@ -262,11 +271,14 @@ export function parseProgram(text: string, tab: TabKind): ParseResult {
 export function compileOps(ops: Operation[], initial: VisualElement[]): Step[] {
   let data = initial;
   const all: Step[] = [];
+  let currentVarName: string | undefined = undefined;
   for (const op of ops) {
+    if (op.kind === 'newStructure' && op.varName) currentVarName = op.varName;
     const steps = generateSteps(data, op).map(s => ({
       ...s,
-      line: op.sourceLine,
-      lineSource: 'editor' as const,
+      editorLine: op.sourceLine,
+      opKind: op.kind,
+      structureName: currentVarName,
     }));
     all.push(...steps);
     const last = steps[steps.length - 1];

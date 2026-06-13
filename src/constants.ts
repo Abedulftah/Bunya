@@ -8,6 +8,8 @@ export const SPEED_STEP = 0.25;
 export const MAX_STACK = 8;
 export const MAX_QUEUE = 7;
 export const MAX_LIST = 6;
+/** Safety cap on while-loop iterations in function mode (runaway-loop guard). */
+export const MAX_FN_ITER = 50;
 export const SORT_MIN_SIZE = 5;
 export const SORT_MAX_SIZE = 10;
 /** Longest value (in characters) that still fits inside the element boxes. */

@@ -32,6 +32,14 @@ export function bubbleSortSteps(bars: VisualElement[]): Step[] {
     for (let j = 0; j < n - 1 - i; j++) {
       const a = Number(work[j].value);
       const b = Number(work[j + 1].value);
+      // inner for (line 2): the loop selects the pair at positions j and j+1
+      steps.push({
+        frame: frame(snap(k => (k === j || k === j + 1 ? 'active' : null))),
+        line: 2,
+        lineSource: 'pseudo',
+        description: S.sort.scan(j),
+      });
+      // if (line 3): compare the pair
       steps.push({
         frame: frame(snap(k => (k === j || k === j + 1 ? 'comparing' : null))),
         line: 3,

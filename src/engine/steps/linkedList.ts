@@ -3,53 +3,55 @@ import { MAX_LIST } from '../../constants';
 import { makeEl } from '../ids';
 import { S } from '../../i18n/strings';
 
+// The list is built from Node<T> using the Ministry API: getNext/setNext/hasNext
+// (the fields are private), matching instruction.md and the Stack/Queue classes.
 export const LIST_PSEUDO = {
   insertHead: [
-    'void insertHead(T v) {',
-    '  Node n = new Node(v);',
-    '  n.next = head;',
-    '  head = n;',
-    '}',
+    'void insertHead(T v) {',                  // 0
+    '  Node n = new Node(v);',                 // 1
+    '  n.setNext(this.head);',                 // 2
+    '  this.head = n;',                        // 3
+    '}',                                       // 4
   ],
   insertTail: [
-    'void insertTail(T v) {',
-    '  Node n = new Node(v);',
-    '  tail.next = n;',
-    '  tail = n;',
-    '}',
+    'void insertTail(T v) {',                  // 0
+    '  Node n = new Node(v);',                 // 1
+    '  this.tail.setNext(n);',                 // 2
+    '  this.tail = n;',                        // 3
+    '}',                                       // 4
   ],
   insertAt: [
-    'void insertAt(int i, T v) {',
-    '  Node cur = head;',
-    '  repeat (i - 1) times:',
-    '    cur = cur.next;',
-    '  Node n = new Node(v);',
-    '  n.next = cur.next;',
-    '  cur.next = n;',
-    '}',
+    'void insertAt(int i, T v) {',             // 0
+    '  Node cur = this.head;',                 // 1
+    '  for (int k = 0; k < i - 1; k++)',       // 2
+    '    cur = cur.getNext();',                // 3
+    '  Node n = new Node(v);',                 // 4
+    '  n.setNext(cur.getNext());',             // 5
+    '  cur.setNext(n);',                       // 6
+    '}',                                       // 7
   ],
   deleteHead: [
-    'void deleteHead() {',
-    '  if (head == null) error;',
-    '  head = head.next;',
-    '}',
+    'void deleteHead() {',                     // 0
+    '  if (this.head == null) return;',        // 1
+    '  this.head = this.head.getNext();',      // 2
+    '}',                                       // 3
   ],
   deleteTail: [
-    'void deleteTail() {',
-    '  if (head == null) error;',
-    '  Node cur = head;',
-    '  while (cur.next.next != null)',
-    '    cur = cur.next;',
-    '  cur.next = null;',
-    '}',
+    'void deleteTail() {',                     // 0
+    '  if (this.head == null) return;',        // 1
+    '  Node cur = this.head;',                 // 2
+    '  while (cur.getNext().hasNext())',       // 3
+    '    cur = cur.getNext();',                // 4
+    '  cur.setNext(null);',                    // 5
+    '}',                                       // 6
   ],
   deleteAt: [
-    'void deleteAt(int i) {',
-    '  Node cur = head;',
-    '  repeat (i - 1) times:',
-    '    cur = cur.next;',
-    '  cur.next = cur.next.next;',
-    '}',
+    'void deleteAt(int i) {',                  // 0
+    '  Node cur = this.head;',                 // 1
+    '  for (int k = 0; k < i - 1; k++)',       // 2
+    '    cur = cur.getNext();',                // 3
+    '  cur.setNext(cur.getNext().getNext());', // 4
+    '}',                                       // 5
   ],
 };
 
