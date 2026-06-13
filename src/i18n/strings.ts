@@ -1,6 +1,7 @@
 import { MAX_LIST, MAX_QUEUE, MAX_STACK, MAX_VALUE_LEN } from '../constants';
 import type { Value } from '../types';
 
+
 /** Single source of truth for every Arabic string in the UI. */
 export const S = {
   appTitle: 'بُنيَة',
