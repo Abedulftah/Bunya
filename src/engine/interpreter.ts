@@ -42,16 +42,17 @@ export interface MethodEntry {
 }
 
 const METHODS: MethodEntry[] = [
-  // ── Stack (Ministry spec: insert/remove/top/isEmpty; push/pop as aliases) ──
-  { name: 'insert', kind: 'push',    argSpec: 'value', tabs: ['stack'] },
-  { name: 'remove', kind: 'pop',     argSpec: 'none',  tabs: ['stack'] },
+  // ── Stack (push/pop/top/isEmpty; insert/remove as aliases) ──────────────────
+  { name: 'push',   kind: 'push',    argSpec: 'value', tabs: ['stack'] },
+  { name: 'pop',    kind: 'pop',     argSpec: 'none',  tabs: ['stack'] },
   { name: 'top',    kind: 'top',     argSpec: 'none',  tabs: ['stack'] },
-  { name: 'push',   kind: 'push',    argSpec: 'value', tabs: ['stack'] },   // alias
-  { name: 'pop',    kind: 'pop',     argSpec: 'none',  tabs: ['stack'] },   // alias
-  // ── Queue (insert/remove/head/isEmpty; enqueue/dequeue as aliases) ─────────
-  { name: 'insert',  kind: 'enqueue', argSpec: 'value', tabs: ['queue'] },
+  { name: 'insert', kind: 'push',    argSpec: 'value', tabs: ['stack'] },   // alias
+  { name: 'remove', kind: 'pop',     argSpec: 'none',  tabs: ['stack'] },   // alias
+  // ── Queue (add/remove/head/isEmpty; insert/enqueue/dequeue as aliases) ──────
+  { name: 'add',     kind: 'enqueue', argSpec: 'value', tabs: ['queue'] },
   { name: 'remove',  kind: 'dequeue', argSpec: 'none',  tabs: ['queue'] },
   { name: 'head',    kind: 'head',    argSpec: 'none',  tabs: ['queue'] },
+  { name: 'insert',  kind: 'enqueue', argSpec: 'value', tabs: ['queue'] }, // alias
   { name: 'enqueue', kind: 'enqueue', argSpec: 'value', tabs: ['queue'] }, // alias
   { name: 'dequeue', kind: 'dequeue', argSpec: 'none',  tabs: ['queue'] }, // alias
   // ── Shared ─────────────────────────────────────────────────────────────────

@@ -5,14 +5,14 @@ const SUPPORTED = `Stack<int> mystack = new Stack<int>();
 mystack.push(15);
 mystack.top();
 mystack.pop();
-myqueue.insert("أحمد");
+myqueue.add("أحمد");
 myqueue.head();
 myqueue.remove();
 myqueue.isEmpty();`;
 
 /**
  * Shown instead of the editor on tabs whose operations are not part of the
- * code engine (instruction.md defines only push/pop/enqueue/dequeue).
+ * code engine (Stack: push/pop/top/isEmpty; Queue: add/remove/head/isEmpty).
  */
 export function CodeUnavailable() {
   return (

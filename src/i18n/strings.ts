@@ -70,10 +70,10 @@ export const S = {
 
   ops: {
     newStructure: 'إنشاء هيكل جديد — new',
-    push: 'الإدخال إلى المكدس — insert',
-    pop: 'الإخراج من المكدس — remove',
+    push: 'الإدخال إلى المكدس — push',
+    pop: 'الإخراج من المكدس — pop',
     top: 'قراءة القمة دون إزالة — top',
-    enqueue: 'الإضافة إلى الطابور — insert',
+    enqueue: 'الإضافة إلى الطابور — add',
     dequeue: 'الإزالة من الطابور — remove',
     head: 'قراءة المقدمة دون إزالة — head',
     isEmpty: 'هل الهيكل فارغ؟ — isEmpty',
@@ -169,14 +169,14 @@ export const S = {
     badArgs: (m: string, c: number) => `عدد المعاملات غير صحيح — ${m} يحتاج إلى ${c}`,
     badValue: 'قيمة غير صالحة — اكتب عددًا صحيحًا أو نصًا بين علامتي اقتباس',
     badIndex: 'موقع غير صالح — يجب أن يكون رقمًا صحيحًا غير سالب',
-    needQuotes: 'النصوص تُكتب بين علامتي اقتباس، مثل: insert("أحمد")',
+    needQuotes: 'النصوص تُكتب بين علامتي اقتباس، مثل: push("أحمد")',
     tooLong: `القيمة طويلة — الحد الأقصى ${MAX_VALUE_LEN} رموز`,
     typeMismatch: (v: Value, t: string, name: string) =>
       `القيمة ${typeof v === 'string' ? `"${v}"` : v} لا تطابق النوع <${t}> الخاص بالمتغير ${name}`,
     typeMixed: (v: Value, t: string) =>
       `خطأ: القيمة ${typeof v === 'string' ? `"${v}"` : v} لا تطابق نوع عناصر الهيكل <${t}> — كل العناصر من نوع واحد، مثل القالب T`,
     syntax: 'صيغة غير مفهومة — تحقق من كتابة السطر',
-    emptyProgram: 'لا يوجد كود قابل للتنفيذ — اكتب عمليات مثل ;mystack.insert(5)',
+    emptyProgram: 'لا يوجد كود قابل للتنفيذ — اكتب عمليات مثل ;mystack.push(5)',
   },
 
   footer: 'صُمّم كمشروع تعليمي لطلاب المرحلة الثانوية ',
@@ -221,7 +221,7 @@ export const S = {
     badStatement: 'صيغة غير صالحة — تحقّق من كتابة السطر (فاصلة منقوطة؟ أقواس؟)',
     badExpr: (e: string) => `تعبير غير مفهوم: «${e}»`,
     unknownMethod: (m: string) =>
-      `العملية "${m}" غير معروفة — المتاح: insert / remove / push / pop / enqueue / dequeue / top / head / isEmpty`,
+      `العملية "${m}" غير معروفة — المتاح: push / pop / add / remove / top / head / isEmpty`,
     needsArg: (m: string) => `العملية "${m}" تحتاج معاملاً واحداً بين القوسين`,
     needsArgs: (m: string, n: number) =>
       `العملية "${m}" تحتاج ${n === 1 ? 'معاملاً واحداً' : `${n} معاملات`} بين القوسين`,

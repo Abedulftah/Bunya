@@ -4,7 +4,7 @@ import type { OpKind, TabKind } from '../types';
  * Initial editor program per tab — LeetCode-style: a class with one
  * `public static` method whose single structure parameter is bound to the
  * on-screen canvas. The body uses the Ministry of Education class interfaces.
- * Stack — insert/remove/top/isEmpty; Queue — insert/remove/head/isEmpty;
+ * Stack — push/pop/top/isEmpty; Queue — add/remove/head/isEmpty;
  * Linked List — insertHead/insertTail/insertAt/deleteHead/deleteTail/deleteAt;
  * Sort — bubbleSort(arr) on an int[].
  */
@@ -12,10 +12,10 @@ export const CODE_TEMPLATES: Record<TabKind, string> = {
   stack: `// المكدس عام النوع T — جرّب <int> أو <string>
 class Solution {
   public static int demo(Stack<int> s) {
-    s.insert(10);
-    s.insert(20);
+    s.push(10);
+    s.push(20);
     int t = s.top();
-    s.remove();
+    s.pop();
     return t;
   }
 }`,
@@ -23,8 +23,8 @@ class Solution {
   queue: `// الطابور — أول من يدخل أول من يخرج (FIFO)
 class Solution {
   public static int demo(Queue<int> q) {
-    q.insert(5);
-    q.insert(8);
+    q.add(5);
+    q.add(8);
     int h = q.head();
     q.remove();
     return h;
