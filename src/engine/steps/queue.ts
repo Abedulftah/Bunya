@@ -3,11 +3,11 @@ import { MAX_QUEUE } from '../../constants';
 import { makeEl } from '../ids';
 import { S } from '../../i18n/strings';
 
-// Bagrut method names: insert/remove/head (enqueue/dequeue are accepted aliases).
+// Method names: add/remove/head (insert/enqueue/dequeue are accepted aliases).
 // The queue is a singly-linked list of Node<T> with head + tail (instruction.md).
 export const QUEUE_PSEUDO = {
-  insert: [
-    'void insert(T x) {',                  // 0
+  add: [
+    'void add(T x) {',                     // 0
     '  Node n = new Node(x);',             // 1
     '  if (this.isEmpty())',               // 2
     '    this.head = n;',                  // 3
@@ -43,7 +43,7 @@ const step = (items: VisualElement[], line: number, description: string, error =
   ({ frame: frame(items), line, lineSource: 'pseudo', description, error });
 
 /**
- * insert(x): append a new Node at the tail. items[0] is the front/head (drawn at
+ * add(x): append a new Node at the tail. items[0] is the front/head (drawn at
  * the right edge); a new element joins at the rear/tail (left edge).
  */
 export function enqueueSteps(items: VisualElement[], value: Value): Step[] {

@@ -126,9 +126,9 @@ export function OpToolbar({
       {tab === 'stack' && (
         <>
           <ValueInput label={S.toolbar.value} value={val} onChange={setVal} />
-          <OpButton en="insert" ar="إدخال" variant="add" disabled={!enabled || !validVal}
+          <OpButton en="push" ar="إدخال" variant="add" disabled={!enabled || !validVal}
             onClick={() => onOp({ kind: 'push', value: v(), sourceLine: 0 })} />
-          <OpButton en="remove" ar="إخراج" variant="remove" disabled={!enabled}
+          <OpButton en="pop" ar="إخراج" variant="remove" disabled={!enabled}
             onClick={() => onOp({ kind: 'pop', sourceLine: 0 })} />
           <OpButton en="top" ar="القمة" variant="run" disabled={!enabled}
             onClick={() => onOp({ kind: 'top', sourceLine: 0 })} />
@@ -140,7 +140,7 @@ export function OpToolbar({
       {tab === 'queue' && (
         <>
           <ValueInput label={S.toolbar.value} value={val} onChange={setVal} />
-          <OpButton en="insert" ar="إضافة" variant="add" disabled={!enabled || !validVal}
+          <OpButton en="add" ar="إضافة" variant="add" disabled={!enabled || !validVal}
             onClick={() => onOp({ kind: 'enqueue', value: v(), sourceLine: 0 })} />
           <OpButton en="remove" ar="إزالة" variant="remove" disabled={!enabled}
             onClick={() => onOp({ kind: 'dequeue', sourceLine: 0 })} />

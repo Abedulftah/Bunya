@@ -113,7 +113,7 @@ export const S = {
     full: `خطأ: الطابور ممتلئ! (الحد الأقصى ${MAX_QUEUE} عناصر)`,
     checkEmpty: 'نتحقق: هل الطابور فارغ؟ (head == null)',
     emptyErr: 'خطأ: الطابور فارغ! remove تُعيد null',
-    // insert(x): linked-list of Node<T> with head + tail (instruction.md)
+    // add(x): linked-list of Node<T> with head + tail (instruction.md)
     newNode: (v: Value) => `ننشئ عقدة جديدة: Node n = new Node(${v})`,
     linkHead: 'الطابور فارغ — نجعل المقدمة: this.head = n',
     linkTail: 'نربط العقدة بالمؤخرة: this.tail.setNext(n)',

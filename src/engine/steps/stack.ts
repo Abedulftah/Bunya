@@ -5,14 +5,14 @@ import { S } from '../../i18n/strings';
 
 export const STACK_PSEUDO = {
   push: [
-    'void insert(T x) {',
+    'void push(T x) {',
     '  Node n = new Node(x);',
     '  n.setNext(this.head);',
     '  this.head = n;',
     '}',
   ],
   pop: [
-    'T remove() {',
+    'T pop() {',
     '  if (isEmpty()) return null;',
     '  T v = this.head.getValue();',
     '  this.head = this.head.getNext();',

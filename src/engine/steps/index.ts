@@ -117,7 +117,7 @@ export const PSEUDO_BY_OP: Record<OpKind, PseudoListing> = {
   push: { title: S.ops.push, lines: STACK_PSEUDO.push },
   pop: { title: S.ops.pop, lines: STACK_PSEUDO.pop },
   top: { title: S.ops.top, lines: STACK_PSEUDO.top },
-  enqueue: { title: S.ops.enqueue, lines: QUEUE_PSEUDO.insert },
+  enqueue: { title: S.ops.enqueue, lines: QUEUE_PSEUDO.add },
   dequeue: { title: S.ops.dequeue, lines: QUEUE_PSEUDO.remove },
   head: { title: S.ops.head, lines: QUEUE_PSEUDO.head },
   isEmpty: { title: S.ops.isEmpty, lines: ['boolean isEmpty() {', '  return this.head == null;', '}'] },
